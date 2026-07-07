@@ -2,6 +2,21 @@
 
 A growing library of portable **AgentSkills** for designers using **Codex**, **Claude Code**, **Cursor**, and other AI coding agents.
 
+![Aura Build super prompt workflow](assets/aura-build-superprompt.gif)
+
+Use these skills to turn references into prompts, then run those prompts in [Aura Build](https://aura.build) to generate detailed landing pages.
+
+Start with the flagship web-design workflow:
+
+1. **[Video to Super Prompt](agent-skills/codex/video-to-superprompt/SKILL.md)**
+   Turns a screen recording of a design, landing page, or animation into a super detailed prompt that Fable 5 can use to one-shot HTML.
+2. **[HTML to Interaction Prompts](agent-skills/codex/html-to-interaction-prompts/SKILL.md)**
+   Turns an existing HTML page, like an Aura Build page, into reusable prompts for one section, one animation, one button, one hover state, or one WebGL effect.
+3. **[Stitched Full Page Capture](agent-skills/codex/stitched-full-page-capture/SKILL.md)**
+   Captures the entire landing page instead of only the hero, giving your agent a full-page reference for structure, pacing, and visual hierarchy.
+4. **[Daily UI Inspiration](agent-skills/codex/daily-ui-inspiration-capture/SKILL.md)**
+   Combines browsing, capture, reference study, and prompt generation into a useful agent loop that turns strong landing pages into detailed prompt packs.
+
 These are Clawdbot-style skill folders: concise `SKILL.md` playbooks with optional references, articles, scripts, and assets. The goal is simple: turn good prompts, workflows, style systems, capture recipes, and debugging habits into versioned files an agent can load and follow.
 
 Portable by default. Each skill should work for any user, repo, or workspace unless the user supplies project-specific context through local agent instructions.
