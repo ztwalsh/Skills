@@ -1,6 +1,6 @@
 ---
 name: x-bookmark-quote-posts
-description: Check Meng's latest X/Twitter bookmarks and turn recent saved posts into source-backed quote-post drafts in the Content repo. Use when asked to review X bookmarks, create quote posts from bookmarks, refresh the bookmark quote queue, run the bookmark quote automation, or write personal founder/designer/operator quote posts from X sources.
+description: Check Meng's latest 30 days of X/Twitter bookmarks and turn recent saved posts into source-backed quote-post drafts in the Content repo. Use when asked to review X bookmarks, create quote posts from bookmarks, refresh the bookmark quote queue, run the bookmark quote automation, or write personal founder/designer/operator quote posts from X sources.
 ---
 
 # X Bookmark Quote Posts
@@ -34,9 +34,10 @@ https://x.com/i/bookmarks
 Collect a bounded batch from the latest visible bookmark feed:
 
 - Extract author, handle, source URL, source timestamp, visible post text, article-card title/summary, and media/context clues.
-- Scroll only enough to gather about 8-12 usable candidates.
-- If the user asks for a time window, prioritize source posts in that window. For "last 3 days", treat the current date/time and timezone literally.
-- Note that X shows source post timestamps, not bookmark-saved timestamps. If an older source appears near the top of bookmarks, label it as an older source surfaced in the latest feed.
+- Default to the last 30 days of bookmark-feed source posts unless the user names a different window. Treat the current date/time and timezone literally.
+- Scroll enough to gather about 12-20 usable candidates across the 30-day window, while staying bounded.
+- Include practical resource-list bookmarks, not only AI-agent takes. Example pattern: a Solt Wagner-style list of creative resources, websites, and apps such as image generators, dither tools, mockup tools, Framer templates, dock widgets, motion tools, and gradient tools.
+- Note that X usually exposes source post timestamps, not bookmark-saved timestamps. Label the window clearly as source-post dates from the bookmark feed unless the saved/bookmarked timestamp is visible.
 - Open status URLs for truncated posts or article cards when needed to get enough context. Keep the collection source-backed.
 
 Do not rely on public search when the task is specifically about bookmarks unless browser access is blocked and the user approves a fallback.
@@ -69,7 +70,7 @@ Source: https://x.com/...
 <draft>
 ```
 
-Write 7-10 drafts unless the source supply is weaker. Put strongest posts under `Best Picks`; use `Secondary Picks` for alternates or lower-confidence sources.
+Write 7-10 drafts unless the source supply is weaker. Put strongest posts under `Best Picks`; use `Secondary Picks` for alternates or lower-confidence sources. Prefer variety across agents, design resources, tools, founder lessons, AI video, product demos, and workflow ideas.
 
 ## Voice
 
