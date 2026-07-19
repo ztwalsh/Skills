@@ -158,6 +158,12 @@ fi
 # ticket's worktree branched off and when this check runs.
 SCOPE_BASE="$(git -C "$WORKTREE_PATH" merge-base main "$ACTUAL_BRANCH")"
 CHANGED_FILES="$(git -C "$WORKTREE_PATH" diff --name-only "$SCOPE_BASE" "$ACTUAL_BRANCH")"
+{
+  echo "--- scope check debug ($(date)) ---"
+  echo "TICKET_SCOPE=[$TICKET_SCOPE]"
+  echo "ACTUAL_BRANCH=[$ACTUAL_BRANCH] SCOPE_BASE=[$SCOPE_BASE]"
+  echo "CHANGED_FILES=[$CHANGED_FILES]"
+} >>"$LOG_TXT"
 OUT_OF_SCOPE=""
 while IFS= read -r f; do
   [[ -z "$f" ]] && continue
@@ -168,6 +174,7 @@ while IFS= read -r f; do
       $g) MATCHED=1 ;;
     esac
   done
+  echo "  scope-match file=[$f] matched=$MATCHED" >>"$LOG_TXT"
   if [[ $MATCHED -eq 0 ]]; then
     OUT_OF_SCOPE="${OUT_OF_SCOPE}${f}\n"
   fi
