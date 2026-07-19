@@ -31,18 +31,28 @@ if [[ -f "$REPO_ROOT/.claude/ticket-queue.config" ]]; then
 fi
 
 # The queue must never touch whatever's checked out interactively in
-# $REPO_ROOT - that can be (and often is) a dirty feature branch mid-work.
-# All queue bookkeeping and ticket work happens from a dedicated worktree
-# pinned to main, created once and fast-forwarded on every run.
+# $REPO_ROOT - that can be (and often is) a dirty feature branch mid-work,
+# or someone interactively committing straight to main in that same
+# directory while a run is in flight (this happened during development:
+# a ticket got queued via a normal `git push` to main from $REPO_ROOT
+# while a run was using $REPO_ROOT as its queue worktree, and the run's
+# own scope-diff check picked up that unrelated push as a false-positive
+# scope violation). All queue bookkeeping and ticket work happens from a
+# dedicated worktree on its own branch (queue-main-snapshot, not literally
+# "main"), kept in sync with origin/main via fetch + hard reset every run.
+# Using a distinct branch name - rather than literally checking out "main"
+# - means this works even when $REPO_ROOT's own interactive checkout is on
+# main itself; git only refuses two worktrees on the *same* branch name.
 REPO_NAME="$(basename "$REPO_ROOT")"
 QUEUE_MAIN="$(dirname "$REPO_ROOT")/${REPO_NAME}-queue-main"
+QUEUE_BRANCH="queue-main-snapshot"
 if [[ ! -d "$QUEUE_MAIN" ]]; then
-  git -C "$REPO_ROOT" worktree add "$QUEUE_MAIN" main >>"$LOG_DIR/launchd.log" 2>&1
-else
-  git -C "$QUEUE_MAIN" checkout main >>"$LOG_DIR/launchd.log" 2>&1
-  git -C "$QUEUE_MAIN" pull --ff-only origin main >>"$LOG_DIR/launchd.log" 2>&1
+  git -C "$REPO_ROOT" worktree add -B "$QUEUE_BRANCH" "$QUEUE_MAIN" main >>"$LOG_DIR/launchd.log" 2>&1
 fi
 cd "$QUEUE_MAIN"
+git fetch origin main >>"$LOG_DIR/launchd.log" 2>&1
+git checkout "$QUEUE_BRANCH" >>"$LOG_DIR/launchd.log" 2>&1
+git reset --hard origin/main >>"$LOG_DIR/launchd.log" 2>&1
 
 TIMESTAMP="$(date +%Y%m%d-%H%M%S)"
 
@@ -62,7 +72,7 @@ echo "picked ticket: $TICKET_PATH"
 python3 automation/ticket_meta.py set "$TICKET_PATH" status=in-progress "locked_at=$TIMESTAMP"
 git add "$TICKET_PATH"
 git commit -m "Lock ticket: $TICKET_ID" >/dev/null
-if ! git push origin HEAD 2>>"$LOG_TXT"; then
+if ! git push origin HEAD:main 2>>"$LOG_TXT"; then
   echo "failed to push lock commit, aborting run (leaving ticket locked locally for manual inspection)" >&2
   exit 1
 fi
@@ -137,13 +147,17 @@ trap cleanup_worktree EXIT
 
 if [[ $CLAUDE_EXIT -ne 0 ]]; then
   python3 automation/ticket_meta.py set "$TICKET_PATH" status=review "note=headless run failed (exit $CLAUDE_EXIT), see $LOG_TXT"
-  git add "$TICKET_PATH" && git commit -m "Ticket $TICKET_ID: run failed" >/dev/null && git push origin HEAD
+  git add "$TICKET_PATH" && git commit -m "Ticket $TICKET_ID: run failed" >/dev/null && git push origin HEAD:main
   osascript -e "display notification \"run failed, exit $CLAUDE_EXIT - see $LOG_TXT\" with title \"Ticket needs review: $TICKET_ID\"" 2>/dev/null || true
   exit 1
 fi
 
 # --- 4. Scope check ---
-CHANGED_FILES="$(git -C "$WORKTREE_PATH" diff --name-only main)"
+# Diff from the merge-base, not a moving branch ref - protects against
+# main having advanced (e.g. another ticket queued) between when this
+# ticket's worktree branched off and when this check runs.
+SCOPE_BASE="$(git -C "$WORKTREE_PATH" merge-base main "$ACTUAL_BRANCH")"
+CHANGED_FILES="$(git -C "$WORKTREE_PATH" diff --name-only "$SCOPE_BASE" "$ACTUAL_BRANCH")"
 OUT_OF_SCOPE=""
 while IFS= read -r f; do
   [[ -z "$f" ]] && continue
@@ -162,14 +176,14 @@ done <<< "$CHANGED_FILES"
 # --- 5. Land ---
 if [[ -n "$OUT_OF_SCOPE" ]]; then
   python3 automation/ticket_meta.py set "$TICKET_PATH" status=review "note=scope violation, changed files outside declared scope, see $LOG_TXT"
-  git add "$TICKET_PATH" && git commit -m "Ticket $TICKET_ID: scope violation, needs manual review" >/dev/null && git push origin HEAD
+  git add "$TICKET_PATH" && git commit -m "Ticket $TICKET_ID: scope violation, needs manual review" >/dev/null && git push origin HEAD:main
   osascript -e "display notification \"scope violation, changed files outside declared scope\" with title \"Ticket needs review: $TICKET_ID\"" 2>/dev/null || true
   exit 0
 fi
 
 if [[ -z "$CHANGED_FILES" ]]; then
   python3 automation/ticket_meta.py set "$TICKET_PATH" status=review "note=no changes produced, see $LOG_TXT"
-  git add "$TICKET_PATH" && git commit -m "Ticket $TICKET_ID: no changes produced" >/dev/null && git push origin HEAD
+  git add "$TICKET_PATH" && git commit -m "Ticket $TICKET_ID: no changes produced" >/dev/null && git push origin HEAD:main
   osascript -e "display notification \"no changes produced\" with title \"Ticket needs review: $TICKET_ID\"" 2>/dev/null || true
   exit 0
 fi
@@ -182,7 +196,7 @@ PR_URL="$(gh pr create --draft --base main --head "$ACTUAL_BRANCH" \
   --repo "$REPO_SLUG" 2>>"$LOG_TXT")"
 
 python3 automation/ticket_meta.py set "$TICKET_PATH" status=review "pr=$PR_URL"
-git add "$TICKET_PATH" && git commit -m "Ticket $TICKET_ID: PR opened" >/dev/null && git push origin HEAD
+git add "$TICKET_PATH" && git commit -m "Ticket $TICKET_ID: PR opened" >/dev/null && git push origin HEAD:main
 
 osascript -e "display notification \"$PR_URL\" with title \"Ticket ready for review: $TICKET_ID\"" 2>/dev/null || true
 echo "done: $PR_URL"
