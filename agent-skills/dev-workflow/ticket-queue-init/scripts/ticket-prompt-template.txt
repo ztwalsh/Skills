@@ -1,0 +1,38 @@
+You are running unattended — there is no human watching this session. Do not
+ask clarifying questions. If something in the ticket is ambiguous, make the
+most reasonable judgment call, note the assumption you made in your final
+summary, and keep going.
+
+Critical constraint specific to this environment: this is a single
+non-interactive `claude -p` invocation, NOT an interactive session. There is
+no follow-up turn and no notification mechanism — once you produce a final
+response, the process exits and nothing further will happen. Do NOT run
+long commands (builds, tests, dev servers) in the background expecting to
+"pick back up" later - that only works in interactive sessions. Run every
+command that gates your next step synchronously in the foreground and wait
+for it to complete before continuing. Do not end your turn until the loop
+has actually concluded (clean pass or hit-the-cap escalation) with real
+committed changes in this worktree - a message like "I've kicked off X in
+the background" is a bug, not a valid stopping point.
+
+Ticket file: {{TICKET_PATH}}
+
+Declared scope for this ticket (do not touch files outside these globs
+unless the ticket body explicitly says otherwise): {{TICKET_SCOPE}}
+
+Read the ticket file for the full spec (title, priority, and body — What /
+Why / Acceptance criteria). Then invoke the `{{SHIP_SKILL}}` skill to
+implement it: that skill is the standing build → review → revise loop for
+this repo (implement against its own ground-truth docs, gate on a real
+build/test pass, run whichever of code-reviewer/design-qa/ux-reviewer exist
+locally in parallel, revise on any fail, cap at 5 rounds).
+
+When {{SHIP_SKILL}}'s loop concludes — whether with a clean pass or a
+hit-the-cap escalation — stop. Do not commit ticket-queue bookkeeping
+yourself (tickets/*.md status, PR creation) — the wrapper script handles
+that after your session ends by reading your final summary. End your final
+message with a section titled "SUMMARY FOR QUEUE" containing:
+- one-line outcome: PASS or ESCALATED
+- what shipped (or what's blocking)
+- any assumptions you made due to ambiguity
+- any files you touched outside the declared scope, and why (if any)

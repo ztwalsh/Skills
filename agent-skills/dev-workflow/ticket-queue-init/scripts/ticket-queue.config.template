@@ -1,0 +1,15 @@
+# Sourced by automation/run-queue.sh. Bash syntax.
+
+# Name of the ship-style skill to invoke for each ticket (a project-local
+# `.claude/skills/<name>` or a global `~/.claude/skills/<name>`).
+SHIP_SKILL="ship"
+
+# Gitignored paths (relative to repo root) that a fresh git worktree needs
+# symlinked in to build/run - API keys, local secrets, etc. Leave empty if
+# this repo has none. One entry per array element, e.g.:
+# SECRET_PATHS=(
+#   "Cardio Tracking/Secrets.swift"
+#   "config/local.env"
+# )
+SECRET_PATHS=(
+)
