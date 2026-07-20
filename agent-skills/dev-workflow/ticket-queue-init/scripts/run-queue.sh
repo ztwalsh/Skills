@@ -165,10 +165,14 @@ if [[ $CLAUDE_EXIT -ne 0 ]]; then
 fi
 
 # --- 4. Scope check ---
-# Diff from the merge-base, not a moving branch ref - protects against
-# main having advanced (e.g. another ticket queued) between when this
-# ticket's worktree branched off and when this check runs.
-SCOPE_BASE="$(git -C "$WORKTREE_PATH" merge-base main "$ACTUAL_BRANCH")"
+# Diff from the merge-base against origin/main, NOT the local "main" ref -
+# this script fetches origin/main every run but never updates the local
+# main branch itself (only queue-main-snapshot and the origin/main
+# remote-tracking ref get refreshed). Using local "main" here caused every
+# real scope-violation false-positive seen during development: it's
+# whatever main last happened to be synced to by some unrelated action,
+# which is stale far more often than not.
+SCOPE_BASE="$(git -C "$WORKTREE_PATH" merge-base origin/main "$ACTUAL_BRANCH")"
 CHANGED_FILES="$(git -C "$WORKTREE_PATH" diff --name-only "$SCOPE_BASE" "$ACTUAL_BRANCH")"
 {
   echo "--- scope check debug ($(date)) ---"
