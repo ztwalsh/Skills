@@ -102,10 +102,16 @@ PROMPT="$(sed \
 # macOS has no built-in `timeout`/`gtimeout` (coreutils, not preinstalled),
 # so the wall-clock cap is hand-rolled: run claude in the background, race
 # it against a sleep-then-kill watchdog.
+#
+# No --max-budget-usd: on a subscription (not pay-as-you-go API key)
+# account, a dollar cap doesn't bound anything real - there's no overage
+# billing to protect against. The wall-clock timeout below is the actual
+# backstop (bounds how long a stuck/looping run can tie up rate-limit
+# usage). If this repo's queue ever runs on a metered API-key account
+# instead, add --max-budget-usd back.
 set +e
 claude -w "$WORKTREE_NAME" -p "$PROMPT" \
   --output-format json \
-  --max-budget-usd "${TICKET_BUDGET_USD:-8}" \
   --permission-mode bypassPermissions \
   >"$LOG_JSON" 2>"$LOG_TXT" &
 CLAUDE_PID=$!
