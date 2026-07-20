@@ -29,6 +29,10 @@ Read this whole file before doing anything; the setup has a specific order becau
 10. **Only after a clean dry run**, ask the user whether to `launchctl load` the plist. Loading it is the one genuinely hard-to-reverse step in this whole setup (it starts unattended, PR-opening automation) — always get explicit confirmation immediately before doing it, don't bundle it into an earlier "yes" to the overall setup.
 11. **Check the account's billing type before deciding on `--max-budget-usd`.** `cat ~/.claude.json | python3 -c "import json,sys; print(json.load(sys.stdin)['oauthAccount']['billingType'])"` — on a subscription account with `hasExtraUsageEnabled: false`, a dollar budget cap doesn't bound anything real (no overage billing exists to protect against), so the shipped script omits it and relies solely on the wall-clock timeout. On a metered/pay-as-you-go API-key account, add `--max-budget-usd` back — that's the actual scenario it protects.
 
+## A scope violation isn't always a bug
+
+The scope check is deliberately literal — it flags anything outside the declared `scope:` globs, full stop. Most flags so far were real bugs (see the gotchas below), but not all of them will be: a ticket that adds a new locally-persisted file (e.g. a small JSON state file) legitimately needs a `.gitignore` edit alongside it, which won't be in the ticket's scope list unless someone thought to add it upfront. When reviewing a flagged ticket, check what actually changed before assuming it's another instance of a known bug — if the diff is sound and the out-of-scope file is something like a `.gitignore` addition that makes sense for what the ticket asked for, it's fine to land manually with a note, same as a real false positive. The check erring toward "ask a human" here is the intended behavior, not a flaw to eliminate.
+
 ## Known gotchas already fixed in the shipped scripts — don't reintroduce them
 
 - **No `timeout`/`gtimeout` on stock macOS.** `run-queue.sh` hand-rolls the wall-clock cap with a background job + sleep-then-kill watchdog. Don't "simplify" this back to a bare `timeout` call.
