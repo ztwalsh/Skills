@@ -43,8 +43,14 @@ fi
 # Using a distinct branch name - rather than literally checking out "main"
 # - means this works even when $REPO_ROOT's own interactive checkout is on
 # main itself; git only refuses two worktrees on the *same* branch name.
-REPO_NAME="$(basename "$REPO_ROOT")"
-QUEUE_MAIN="$(dirname "$REPO_ROOT")/${REPO_NAME}-queue-main"
+#
+# Lives at .claude/worktrees/queue-main - nested inside the repo, not a
+# visible sibling directory next to it. This mirrors where `claude -w`
+# already places its own per-ticket worktrees, and stays out of the way
+# in a normal directory listing. Needs `.claude/worktrees/` gitignored
+# (ticket-queue-init's setup step adds this even in repos that otherwise
+# track `.claude/`, e.g. for shared agent/skill configs).
+QUEUE_MAIN="$REPO_ROOT/.claude/worktrees/queue-main"
 QUEUE_BRANCH="queue-main-snapshot"
 if [[ ! -d "$QUEUE_MAIN" ]]; then
   git -C "$REPO_ROOT" worktree add -B "$QUEUE_BRANCH" "$QUEUE_MAIN" main >>"$LOG_DIR/launchd.log" 2>&1
