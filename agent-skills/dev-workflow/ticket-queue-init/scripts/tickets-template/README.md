@@ -9,10 +9,15 @@ Copy `_template.md`, fill it in, leave `status: todo`.
 
 `todo` → (picked + locked by the queue script) → `in-progress` → `review`
 (draft PR opened, or parked with a note if something needs a human look) →
-`done` (flip this manually once you've merged the PR).
+`done` (flipped automatically the next time the queue runs after you merge
+the PR — it checks every `review` ticket's `pr:` link against real GitHub
+PR state each run; nothing to do by hand).
 
 ## What the queue script does with a ticket
 
+0. Every run, first checks every ticket already sitting in `review` against
+   its `pr:` link's actual GitHub state — merged PRs get flipped to `done`,
+   closed-without-merging PRs get a note flagging it for a look.
 1. Picks the highest-priority `todo` ticket, flips it to `in-progress`,
    commits that status change to `main` (metadata only, not code — this is
    the lock).

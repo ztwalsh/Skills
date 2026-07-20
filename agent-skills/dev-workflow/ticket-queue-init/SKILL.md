@@ -43,4 +43,5 @@ Read this whole file before doing anything; the setup has a specific order becau
 - `ls automation/ tickets/ .claude/ticket-queue.config` in the target repo shows the scaffolded files.
 - `git worktree list` and `git branch -a` are clean (no stray `ticket-*`/`worktree-*` entries) both before and after the dry-run ticket.
 - The dry-run ticket produces a real draft PR, and its `tickets/<id>.md` frontmatter reads `status: review` with a `pr:` field.
+- After merging that PR, the *next* `run-queue.sh` invocation (not the merge itself) flips it to `status: done` automatically — the queue only learns about a merge by checking `gh pr view` each run, there's no webhook.
 - The launchd plist exists at `~/Library/LaunchAgents/` but `launchctl list | grep <label>` shows nothing until the user explicitly asks to load it.
