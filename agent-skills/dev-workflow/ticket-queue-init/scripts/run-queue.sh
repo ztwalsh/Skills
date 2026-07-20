@@ -60,6 +60,38 @@ git fetch origin main >>"$LOG_DIR/launchd.log" 2>&1
 git checkout "$QUEUE_BRANCH" >>"$LOG_DIR/launchd.log" 2>&1
 git reset --hard origin/main >>"$LOG_DIR/launchd.log" 2>&1
 
+# --- 0. Reconcile: flip status:review tickets to done once their PR has
+# actually merged. The queue itself never knows a PR merged - merging
+# happens on GitHub, not here - so this checks each review ticket's `pr:`
+# link against real PR state every run, rather than requiring a human to
+# remember to flip status by hand (which is what happened before this).
+if command -v gh >/dev/null 2>&1; then
+  RECONCILED=0
+  for f in tickets/*.md; do
+    [[ -e "$f" ]] || continue
+    base="$(basename "$f")"
+    [[ "$base" == "_template.md" || "$base" == "README.md" ]] && continue
+    st="$(python3 automation/ticket_meta.py get "$f" status)"
+    [[ "$st" != "review" ]] && continue
+    pr_url="$(python3 automation/ticket_meta.py get "$f" pr)"
+    [[ -z "$pr_url" ]] && continue
+    pr_state="$(gh pr view "$pr_url" --json state -q .state 2>>"$LOG_DIR/launchd.log")"
+    if [[ "$pr_state" == "MERGED" ]]; then
+      python3 automation/ticket_meta.py set "$f" status=done
+      git add "$f"
+      RECONCILED=1
+    elif [[ "$pr_state" == "CLOSED" ]]; then
+      python3 automation/ticket_meta.py set "$f" note="PR closed without merging - needs attention"
+      git add "$f"
+      RECONCILED=1
+    fi
+  done
+  if [[ "$RECONCILED" -eq 1 ]]; then
+    git commit -m "Reconcile ticket statuses from PR state" >/dev/null
+    git push origin HEAD:main >>"$LOG_DIR/launchd.log" 2>&1 || true
+  fi
+fi
+
 TIMESTAMP="$(date +%Y%m%d-%H%M%S)"
 
 TICKET_PATH="$(python3 automation/ticket_meta.py pick-next)"
