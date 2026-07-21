@@ -10,18 +10,46 @@ file itself, and do NOT change its `status`, `priority`, `created`, or
 
 Ticket file: {{TICKET_PATH}}
 
-Read the ticket's current body (What / Why / Acceptance criteria) and its
-`scope:` field (often missing or empty on a freshly-written ticket — that's
-the normal starting state, not an error). Then:
+The ticket has YAML frontmatter between two `---` lines, followed by a
+markdown body (## What / ## Why / ## Acceptance criteria). Read both. The
+frontmatter's `scope:` field is often missing or empty on a freshly-written
+ticket — that's the normal starting state, not an error.
+
+**Critical formatting rule: `scope:` MUST be added inside the YAML
+frontmatter block, between the two `---` lines — never as a new section
+appended to the markdown body below it.** A parsing script reads only the
+frontmatter; a `scope:` list placed in the body is invisible to it and
+breaks the pipeline. The frontmatter must look exactly like this shape
+(a list under `scope:`, each item on its own `  - ` line, still inside the
+same block bounded by `---` above and `---` below):
+
+```
+---
+title: Example ticket
+status: todo
+priority: 3
+scope:
+  - src/components/example.tsx
+  - server.cjs
+created: 2026-01-01
+---
+```
+
+If `scope:` doesn't exist yet in the frontmatter, add it as a new key
+inside that same `---`-delimited block, anywhere among the other keys —
+not after the closing `---`, not under a markdown heading.
+
+Now:
 
 1. Explore the codebase (read-only) enough to find the real files this
    request would actually touch. Use existing conventions, existing
    components/endpoints/patterns already in the repo — don't invent a new
    pattern where an established one already does the job.
-2. Write (or correct) the `scope:` YAML list with the real file paths you
-   found — precise enough that a later diff-against-scope check will pass
-   for a correct implementation. If the work genuinely requires a new file
-   that doesn't exist yet, include its sensible path anyway.
+2. Write (or correct) the `scope:` YAML list — inside the frontmatter, per
+   the rule above — with the real file paths you found, precise enough
+   that a later diff-against-scope check will pass for a correct
+   implementation. If the work genuinely requires a new file that doesn't
+   exist yet, include its sensible path anyway.
 3. Tighten "Why" if it's thin — one or two sentences is fine, don't pad it.
 4. Expand "Acceptance criteria" into concrete, testable bullets if they're
    vague, sparse, or missing. Reference specific existing patterns in the
@@ -36,4 +64,9 @@ the normal starting state, not an error). Then:
 
 When you're done, the ticket file should read like a spec a competent
 engineer could implement without needing to ask a follow-up question.
-Save the file and stop — a separate process picks it up from here.
+Before you stop, re-read the file once and confirm `scope:` is actually
+inside the frontmatter block (between the two `---` lines), not appended
+below it — this is the one formatting mistake that silently breaks
+everything downstream, so verify it explicitly rather than assuming your
+edit landed where intended. Save the file and stop — a separate process
+picks it up from here.

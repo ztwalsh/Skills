@@ -279,7 +279,7 @@ while IFS= read -r f; do
   [[ -z "$f" ]] && continue
   MATCHED=0
   IFS=',' read -ra GLOBS <<< "$TICKET_SCOPE"
-  for g in "${GLOBS[@]}"; do
+  for g in "${GLOBS[@]:-}"; do
     case "$f" in
       $g) MATCHED=1 ;;
     esac
