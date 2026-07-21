@@ -97,13 +97,15 @@ if [[ "$TICKET_SYNC_CHANGED" -eq 1 ]]; then
   git push origin HEAD:main >>"$LOG_DIR/launchd.log" 2>&1 || true
 fi
 
-# --- 0. Reconcile: flip status:review tickets to done once their PR has
-# actually merged. The queue itself never knows a PR merged - merging
-# happens on GitHub, not here - so this checks each review ticket's `pr:`
-# link against real PR state every run, rather than requiring a human to
-# remember to flip status by hand (which is what happened before this).
+# --- 0. Reconcile.
+RECONCILED=0
+
+# 0a. Flip status:review tickets to done once their PR has actually merged.
+# The queue itself never knows a PR merged - merging happens on GitHub, not
+# here - so this checks each review ticket's `pr:` link against real PR
+# state every run, rather than requiring a human to remember to flip
+# status by hand (which is what happened before this).
 if command -v gh >/dev/null 2>&1; then
-  RECONCILED=0
   for f in tickets/*.md; do
     [[ -e "$f" ]] || continue
     base="$(basename "$f")"
@@ -123,10 +125,37 @@ if command -v gh >/dev/null 2>&1; then
       RECONCILED=1
     fi
   done
-  if [[ "$RECONCILED" -eq 1 ]]; then
-    git commit -m "Reconcile ticket statuses from PR state" >/dev/null
-    git push origin HEAD:main >>"$LOG_DIR/launchd.log" 2>&1 || true
+fi
+
+# 0b. Unstick tickets orphaned in status:in-progress by a run that crashed
+# or got killed between locking and landing (a real failure mode, caught
+# live during development - a script bug crashed a run right after the
+# lock+refine steps, and the ticket had no path back to todo since
+# pick-next only ever selects status:todo). If a lock is older than 2
+# hours - generous headroom over the 1-hour wall-clock timeout on the ship
+# phase alone, accounting for the refine phase too - treat it as
+# abandoned and reset to todo so the queue can pick it up again.
+for f in tickets/*.md; do
+  [[ -e "$f" ]] || continue
+  base="$(basename "$f")"
+  [[ "$base" == "_template.md" || "$base" == "README.md" ]] && continue
+  st="$(python3 automation/ticket_meta.py get "$f" status)"
+  [[ "$st" != "in-progress" ]] && continue
+  locked_at="$(python3 automation/ticket_meta.py get "$f" locked_at)"
+  [[ -z "$locked_at" ]] && continue
+  locked_epoch="$(date -j -f "%Y%m%d-%H%M%S" "$locked_at" +%s 2>/dev/null || echo 0)"
+  now_epoch="$(date +%s)"
+  age=$(( now_epoch - locked_epoch ))
+  if [[ "$locked_epoch" -gt 0 && "$age" -gt 7200 ]]; then
+    python3 automation/ticket_meta.py set "$f" status=todo note="reset from a stale in-progress lock ($((age / 60)) min old - a previous run likely crashed"
+    git add "$f"
+    RECONCILED=1
   fi
+done
+
+if [[ "$RECONCILED" -eq 1 ]]; then
+  git commit -m "Reconcile ticket statuses" >/dev/null
+  git push origin HEAD:main >>"$LOG_DIR/launchd.log" 2>&1 || true
 fi
 
 TIMESTAMP="$(date +%Y%m%d-%H%M%S)"
