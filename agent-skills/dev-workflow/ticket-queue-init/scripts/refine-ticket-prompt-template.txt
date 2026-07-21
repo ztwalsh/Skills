@@ -1,0 +1,39 @@
+You are running unattended — there is no human watching this session, and
+this is a single non-interactive `claude -p` invocation with no follow-up
+turn possible. Do not background any command expecting to "pick back up"
+later — finish before you end your turn.
+
+Your only job this turn: refine one raw ticket into a well-scoped one.
+Do NOT implement anything, do NOT touch any file other than the ticket
+file itself, and do NOT change its `status`, `priority`, `created`, or
+`title` fields.
+
+Ticket file: {{TICKET_PATH}}
+
+Read the ticket's current body (What / Why / Acceptance criteria) and its
+`scope:` field (often missing or empty on a freshly-written ticket — that's
+the normal starting state, not an error). Then:
+
+1. Explore the codebase (read-only) enough to find the real files this
+   request would actually touch. Use existing conventions, existing
+   components/endpoints/patterns already in the repo — don't invent a new
+   pattern where an established one already does the job.
+2. Write (or correct) the `scope:` YAML list with the real file paths you
+   found — precise enough that a later diff-against-scope check will pass
+   for a correct implementation. If the work genuinely requires a new file
+   that doesn't exist yet, include its sensible path anyway.
+3. Tighten "Why" if it's thin — one or two sentences is fine, don't pad it.
+4. Expand "Acceptance criteria" into concrete, testable bullets if they're
+   vague, sparse, or missing. Reference specific existing patterns in the
+   codebase where relevant (e.g. "reuse the existing confirm-dialog pattern
+   in X" rather than leaving that to be reinvented later).
+5. Do NOT change what's being asked for — refine the spec, don't redesign
+   the request. If something about the *intent* is genuinely ambiguous
+   (not just the implementation details), make the most reasonable
+   interpretation and add a short "Assumptions" note under Why explaining
+   the call you made, rather than leaving it vague for the next phase to
+   guess at blind.
+
+When you're done, the ticket file should read like a spec a competent
+engineer could implement without needing to ask a follow-up question.
+Save the file and stop — a separate process picks it up from here.
