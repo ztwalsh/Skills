@@ -12,6 +12,9 @@
         <string>{{REPO_ROOT}}/automation/run-queue.sh</string>
     </array>
 
+    <key>WorkingDirectory</key>
+    <string>{{REPO_ROOT}}</string>
+
     <key>WatchPaths</key>
     <array>
         <string>{{REPO_ROOT}}/tickets</string>
