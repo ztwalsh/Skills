@@ -12,8 +12,10 @@
         <string>{{REPO_ROOT}}/automation/run-queue.sh</string>
     </array>
 
-    <key>StartInterval</key>
-    <integer>3600</integer>
+    <key>WatchPaths</key>
+    <array>
+        <string>{{REPO_ROOT}}/tickets</string>
+    </array>
 
     <key>RunAtLoad</key>
     <false/>
