@@ -3,12 +3,15 @@
 Drop a ticket here — by hand, or via an app that writes directly to this
 directory — and the queue reacts on its own (`automation/run-queue.sh`,
 triggered by launchd `WatchPaths` on this directory once you've loaded the
-job — see the launchd plist written alongside this setup). You don't even
-need to commit it yourself; the queue auto-commits new/changed tickets it
-finds sitting here as its first step. Copy `_template.md` to start one,
-fill in the `title`/`What`/`Why` at minimum, leave `status: todo` — you
-don't need to fill in `scope:` or fully flesh out `Acceptance criteria`,
-the queue's refine phase does that before anything gets implemented.
+job — see the launchd plist written alongside this setup). It also polls
+every 10 minutes (`StartInterval`) as a floor, so a second queued ticket
+still gets picked up after the first one finishes even with no new
+add/remove event to trigger `WatchPaths`. You don't even need to commit it
+yourself; the queue auto-commits new/changed tickets it finds sitting here
+as its first step. Copy `_template.md` to start one, fill in the
+`title`/`What`/`Why` at minimum, leave `status: todo` — you don't need to
+fill in `scope:` or fully flesh out `Acceptance criteria`, the queue's
+refine phase does that before anything gets implemented.
 
 ## Lifecycle
 
@@ -25,7 +28,13 @@ PR state each run; nothing to do by hand).
    directory into its own queue history (auto-committing them), then
    checks every ticket already sitting in `review` against its `pr:`
    link's actual GitHub state — merged PRs get flipped to `done`,
-   closed-without-merging PRs get a note flagging it for a look.
+   closed-without-merging PRs get a note flagging it for a look. It also
+   unsticks tickets orphaned `in-progress` by a crashed run (stale lock
+   over 2 hours old), and self-heals a `todo`/`in-progress` ticket that
+   already has a real PR open or merged under it (covers a status-update
+   push losing a race against a concurrent push — the PR is real, but the
+   local status commit recording that got silently discarded) rather than
+   quietly re-running and duplicating already-shipped work.
 1. Picks the highest-priority `todo` ticket, flips it to `in-progress`,
    commits that status change to `main` (metadata only, not code — this is
    the lock).

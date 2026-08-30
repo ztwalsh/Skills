@@ -153,6 +153,47 @@ for f in tickets/*.md; do
   fi
 done
 
+# 0c. Self-heal a ticket whose status/lock is stale relative to a PR that
+# already exists for it. Real failure mode, not hypothetical: the final
+# status-update push at the end of a run (or a human's own reconciliation
+# push) can lose a race against a concurrent push to main and get silently
+# discarded when the next run's worktree does `git reset --hard
+# origin/main` - the PR is real and already landed, but the ticket still
+# reads todo/in-progress, so the queue re-runs it from scratch and
+# duplicates already-shipped work.
+# Matches by exact PR title "Ticket: <id>" (set by this script's own `gh
+# pr create --title`), not by branch name - long ticket IDs get a
+# truncated/hashed branch name, but the PR title always keeps the full id.
+if command -v gh >/dev/null 2>&1; then
+  ALL_PRS_JSON="$(gh pr list --state all --limit 200 --json number,url,state,title 2>>"$LOG_DIR/launchd.log")"
+  for f in tickets/*.md; do
+    [[ -e "$f" ]] || continue
+    base="$(basename "$f")"
+    [[ "$base" == "_template.md" || "$base" == "README.md" ]] && continue
+    st="$(python3 automation/ticket_meta.py get "$f" status)"
+    [[ "$st" == "todo" || "$st" == "in-progress" ]] || continue
+    tid="$(basename "$f" .md)"
+    match="$(printf '%s' "$ALL_PRS_JSON" | jq -r --arg title "Ticket: $tid" '
+      [.[] | select(.title == $title)]
+      | sort_by(.state != "MERGED")
+      | .[0]
+      | if . == null then "" else (.state + " " + .url) end
+    ')"
+    [[ -z "$match" ]] && continue
+    found_state="${match%% *}"
+    found_url="${match#* }"
+    if [[ "$found_state" == "MERGED" ]]; then
+      python3 automation/ticket_meta.py set "$f" status=done "pr=$found_url" "note=self-healed: a PR for this ticket was already merged, a prior status-update push had lost a race"
+      git add "$f"
+      RECONCILED=1
+    elif [[ "$found_state" == "OPEN" ]]; then
+      python3 automation/ticket_meta.py set "$f" status=review "pr=$found_url" "note=self-healed: a PR for this ticket was already open, a prior status-update push had lost a race"
+      git add "$f"
+      RECONCILED=1
+    fi
+  done
+fi
+
 if [[ "$RECONCILED" -eq 1 ]]; then
   git commit -m "Reconcile ticket statuses" >/dev/null
   git push origin HEAD:main >>"$LOG_DIR/launchd.log" 2>&1 || true
@@ -181,7 +222,20 @@ if ! git push origin HEAD:main 2>>"$LOG_TXT"; then
   exit 1
 fi
 
+# `claude -w` rejects worktree names over 64 chars, and it's not a
+# hypothetical - a real ticket title long enough to trip this sat retried
+# and silently stuck in-progress for over an hour before anyone noticed,
+# since the failure happens inside `claude -w` itself, before this script's
+# own exit-code handling ever runs. Truncate + hash-suffix so long ticket
+# IDs still get a short, deterministic, collision-resistant worktree name -
+# TICKET_ID itself (used for logs, commit messages, the PR title) stays
+# full-length; only this internal git identifier is shortened.
 WORKTREE_NAME="ticket-${TICKET_ID}"
+if [[ ${#WORKTREE_NAME} -gt 64 ]]; then
+  ID_HASH="$(printf '%s' "$TICKET_ID" | shasum | cut -c1-8)"
+  MAX_ID_LEN=$((64 - 7 - 1 - 8))  # "ticket-" + "-" + 8-char hash
+  WORKTREE_NAME="ticket-${TICKET_ID:0:$MAX_ID_LEN}-${ID_HASH}"
+fi
 
 # --- 1.5. Refine: turn the raw ticket into a well-scoped one before
 # implementing anything. Runs directly in the queue worktree (not an
