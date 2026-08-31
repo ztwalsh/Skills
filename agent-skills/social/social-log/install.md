@@ -64,11 +64,17 @@ test entry and the empty commit afterward:
 git reset --hard HEAD~1
 ```
 
-## 5. (Optional) catch manual commits too
+The hook resolves the committed repo from the payload `cwd` **and** falls back
+to scanning every repo under `~/sites/personal-projects` for a HEAD that moved
+in the last 90s, so `cd elsewhere && git commit` one-liners are covered too.
 
-The PostToolUse hook only sees commits made *through* Claude Code (which is
-almost all of them, including unattended `ticket-queue` runs). To also log
-commits typed in a bare terminal, add a git `post-commit` hook globally:
+## 5. (Optional) catch bare-terminal commits too
+
+The PostToolUse hook sees commits made *through* Claude Code (which is almost
+all of them, including unattended `ticket-queue` runs) — its fallback scan even
+catches ones where the payload `cwd` is stale. To also log commits typed
+directly in a terminal with no Claude session running, add a git `post-commit`
+hook globally:
 
 ```sh
 mkdir -p ~/.config/git/hooks

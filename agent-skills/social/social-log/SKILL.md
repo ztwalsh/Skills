@@ -20,7 +20,13 @@ The hook `hooks/post-commit-capture.sh` (wired into `~/.claude/settings.json` as
 `PostToolUse` / `Bash` hook — see `install.md`) fires after every successful
 `git commit` in any repo under `~/sites/personal-projects`. It:
 
+- resolves which repo was committed to from the hook payload's `cwd`, then
+  **also scans every repo under `~/sites/personal-projects`** for one whose HEAD
+  moved in the last 90s — so `cd other-repo && git commit` compound commands
+  (payload `cwd` is stale for those) and bare-terminal commits still get caught.
+  Can log more than one repo in a single fire.
 - skips the `social` repo itself and any project marked `private` in `config.json`
+- dedupes on short SHA, so a re-fire never double-logs
 - prepends a `status: stub` block below the `<!-- entries below -->` marker
 - emits an `additionalContext` nudge telling you (Claude) to enrich it
 
