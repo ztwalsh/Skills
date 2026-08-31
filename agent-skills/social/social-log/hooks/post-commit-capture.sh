@@ -122,6 +122,6 @@ fi
 # nudge Claude to enrich (additionalContext is injected back into the session)
 nudge=$(printf '%b' "$logged" | sed 's/"/\\"/g' | paste -sd '; ' -)
 cat <<EOF
-{"hookSpecificOutput":{"hookEventName":"PostToolUse","additionalContext":"New commit stub(s) added to the top of ~/sites/personal-projects/social/BUILD-LOG.md: ${nudge}. Per the social-log skill: rewrite each stub into an enriched entry (plain-language What, a real Why it matters for a reader without the repo open, Shareable yes/no + what to capture, Tags), set status: enriched, and merge any sibling stubs from the same unit of work. For each entry marked Shareable: yes, create assets/<date>-<project>-<slug>/SHOT-LIST.md."}}
+{"hookSpecificOutput":{"hookEventName":"PostToolUse","additionalContext":"New commit stub(s) added to the top of ~/sites/personal-projects/social/BUILD-LOG.md: ${nudge}. Per the social-log skill: enrich EVERY status: stub block in that file (not just the new one — clear any backlog), oldest first. Each becomes a plain-language What, a real Why it matters for a reader without the repo open, Shareable yes/no + what to capture, Tags; set status: enriched; merge sibling stubs from one unit of work. For each Shareable: yes, create assets/<date>-<project>-<slug>/SHOT-LIST.md. Then commit + push the social repo."}}
 EOF
 exit 0
