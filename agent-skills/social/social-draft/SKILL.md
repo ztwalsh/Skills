@@ -58,11 +58,27 @@ Use `reference/draft-format.md`. Sections:
 4. **Carry-forward** — shareable entries from the window not used this week, so
    they resurface next run.
 
-### 4. Hand off
+### 4. Commit + push the workspace
 
-Print the path and a 2–3 line summary of the strongest candidate. Do **not**
-post. If a visual is missing, the top-line ask to Zachary is "grab these
-screenshots" with the `SHOT-LIST.md` path.
+The capture hook only writes `BUILD-LOG.md` locally; this is where the `social`
+repo actually gets saved. From `~/sites/personal-projects/social`:
+
+```sh
+git add -A && git commit -m "social: <ISO week> draft + log" && git push
+```
+
+Include everything staged — the new/updated `drafts/<week>.md`, any `BUILD-LOG.md`
+entries the backstop sweep enriched, new `assets/*/SHOT-LIST.md` stubs. If
+`git push` fails (no network, auth), commit anyway and tell Zachary it's
+unpushed. Never `git add` screenshots Zachary hasn't placed yet — only files
+this run created or changed.
+
+### 5. Hand off
+
+Print the draft file path and a 2–3 line summary of the strongest candidate,
+and note that the workspace was committed/pushed. Do **not** post. If a visual
+is missing, the top-line ask to Zachary is "grab these screenshots" with the
+`SHOT-LIST.md` path.
 
 ## Voice — non-negotiable
 
@@ -81,7 +97,8 @@ list and flag `NEEDS CAPTURE`. For framed device / App Store shots, that's the
 
 ## Don't
 
-- Don't post, DM, or hit any network API.
+- Don't post, DM, or hit any social/publishing API. (The only network action
+  allowed is `git push` of the `social` repo itself, in step 4.)
 - Don't rewrite `voice.md` or historical `BUILD-LOG.md` entries (appending a
   missed enriched entry during the backstop sweep is fine).
 - Don't overwrite a prior week's draft file — one file per ISO week; if it
