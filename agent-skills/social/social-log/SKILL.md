@@ -44,8 +44,16 @@ status: stub
 
 ## Your job: enrich it
 
-When you see the nudge (or the user asks), open `BUILD-LOG.md` and rewrite the
-newest stub(s) in place. Full format + a worked example:
+**Whenever this skill is triggered — the hook's nudge, or the user asking —
+open `BUILD-LOG.md` and enrich EVERY `status: stub` block in it, not just the
+newest.** Stubs accumulate from unattended `ticket-queue` runs and from
+sessions that ended before acting on their nudge; clear the whole backlog each
+time. Work oldest-first, using `git -C <repo> show <sha>` (and surrounding
+commits) for context on anything you didn't do yourself. If a stub's repo no
+longer exists or the SHA is unreachable, enrich it from the `**What:**` line
+and stat alone and add `_(reconstructed from commit metadata)_` to Why.
+
+Rewrite each stub in place. Full format + a worked example:
 `reference/entry-format.md`. In short:
 
 1. **What** — one or two sentences, plain language, no repo knowledge assumed.
@@ -75,9 +83,10 @@ the context; use it.
   no stub needed. Use the same format. Timestamp = now, real SHA if it's committed
   (`git rev-parse --short HEAD`), else `uncommitted`.
 - "what did I ship this week" — read `BUILD-LOG.md`, summarize; don't draft posts
-  (that's `social-draft`).
-- If stubs have piled up unenriched, work through them oldest-first, using
-  `git show <sha>` in the named project for context.
+  (that's `social-draft`). While you're in there, clear any stubs too.
+- "commit the log" / after enriching — `git -C ~/sites/personal-projects/social
+  add -A && git commit -m "log: enrich <n> stub(s)" && git push`. The hook only
+  writes the file; nothing commits it unless you or `social-draft` do.
 
 ## Don't
 
