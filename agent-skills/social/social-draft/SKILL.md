@@ -49,12 +49,20 @@ Use `reference/draft-format.md`. Sections:
 
 1. **Week in review** — terse bullets grouped by project. This is for Zachary,
    not for posting.
-2. **Post candidates** — 4–8. Each: platform, ready-to-paste text *in his voice*
-   (obey `voice.md` — lowercase ok, no hype, banned-phrase list, lead with the
-   concrete change), the visual (a real path under `assets/` if it exists, else
-   `NEEDS CAPTURE: <what>` and create/point at the `SHOT-LIST.md`), and a
-   one-line "why this angle".
-3. **Thread outlines** — 1–2 for the meatier stories, as numbered posts.
+2. **Post candidates** — 4–8. Each candidate is one story, written *both ways*:
+   - **Threads** — up to ~500 chars, 1–3 short paragraphs. The fuller version.
+   - **X** — one post ≤280 chars. Tighter, not just a truncation — rework the
+     line so it stands on its own. If the story genuinely can't land in 280,
+     give a short numbered X thread (2–4 posts) instead and say why.
+   When both versions would be nearly identical (a short post), still print
+   both slots but note "same as Threads". Both obey `voice.md` (lowercase ok,
+   no hype, banned-phrase list, lead with the concrete change). Then one shared
+   **visual** (a real path under `assets/` if it exists, else
+   `NEEDS CAPTURE: <what>` + create/point at the `SHOT-LIST.md`) and a one-line
+   "why this angle".
+3. **Thread outlines** — 1–2 for the meatier stories, as numbered posts. Note
+   which platform each is aimed at (usually the same thread works on both;
+   flag if X's 280/post limit forces a different split).
 4. **Carry-forward** — shareable entries from the window not used this week, so
    they resurface next run.
 
