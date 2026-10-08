@@ -183,6 +183,10 @@ Files:
 - `agent-skills/ui/design-first-ui-prompting/SKILL.md`
 - `agent-skills/ui/design-first-ui-prompting/ARTICLE.md`
 
+### Writing (1)
+
+- `bants-to-blog` - turn one topic from a meeting transcript into a researched, linked internal blog post published to Sidekick.
+
 ### Web design (62)
 
 Conversion and implementation:
