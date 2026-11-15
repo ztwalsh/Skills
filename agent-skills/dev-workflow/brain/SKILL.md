@@ -97,9 +97,20 @@ A `brain/` nobody reads is documentation. Make sure agents load it: add this to 
 ## Project context
 Before product or design work, read `brain/product.md`, `brain/principles.md`,
 `brain/decisions/product-wide.md`, and the file in `brain/decisions/` for the area you are
-working on (areas are listed in `brain/decisions/index.md`). When a decision is made, log it
-there with the `brain` skill, in the user's own words.
+working on (areas are listed in `brain/decisions/index.md`).
+
+When the user makes a product or design decision (picks between options, sets or removes a
+rule, chooses or drops a direction), log it with the `brain` skill **in the same turn, before
+moving on**: their words quoted exactly, "No reason given." when they gave none. Then say in one
+line what you logged and where, so they can see it went in. Do the same for anything learned
+that belongs in `brain/insights.md`. Routine fixes and refactors are not decisions.
 ```
+
+### The commit-time check
+
+`hooks/post-commit-decisions.sh` asks the agent, after every commit in a repo with `brain/`,
+whether the work included a decision that was not logged. It is set up once per machine, not per
+repo; `install.md` has the steps. If it is not installed, mention it once during set up.
 
 ---
 
