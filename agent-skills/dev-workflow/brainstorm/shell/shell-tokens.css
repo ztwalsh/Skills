@@ -20,7 +20,6 @@
   --tint: color-mix(in srgb, var(--ink) 4%, transparent);      /* hover ground */
   --tint-2: color-mix(in srgb, var(--ink) 8%, transparent);    /* selected ground */
   --scrim: color-mix(in srgb, var(--black) 48%, transparent);  /* behind the bottom sheet */
-  --dim: 0.42;                                                  /* opacity of dropped ideas */
 
   /* type */
   --font: 'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif;

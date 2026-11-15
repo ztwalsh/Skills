@@ -99,6 +99,8 @@ The shell template is in `shell/` beside this file, with `DESIGN.md`.
   scores from any old manifest. Mark the `brief` and every reason as reconstructed unless the
   user's own words are on record. Do not migrate while another session has uncommitted changes
   in that playground.
+  If the old prototypes carry their own "back to gallery" link, point each one at its pass
+  (`index.html#/<slug>/pass-<n>/<id>`, `target="_top"`) so it works inside the shell's viewer.
 - **Keep it off the public site.** Check how the project builds and deploys. If `playground/`
   would be published, exclude it from the build or say plainly that it will be public.
   `index.html` already asks search engines not to index it.
@@ -134,6 +136,8 @@ Number them `p<pass>-001` upward. Each gets a folder `pass-<n>/idea-<number>-<ke
 - Focus on the moment being explored, not the whole screen. Keep it short.
 - The key interaction works on click or tap, not hover only.
 - Start the file with a comment: the idea's ID, name, and its bet in one or two sentences.
+- Do not give an idea its own back link, header or navigation chrome. The shell's viewer opens
+  each idea under a bar with breadcrumbs and previous/next through the pass.
 - No real user data, names or private content. Invent it.
 
 Write each idea's entry in `brainstorm.json` (`name`, `bet`, `dir`, `source`, `url`, `parents`,

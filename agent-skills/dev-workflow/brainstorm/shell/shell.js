@@ -65,6 +65,8 @@
     close: '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" stroke-linecap="round"/></svg>',
     tick: '<svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path d="M2.5 6.2 5 8.6l4.5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     copy: '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="5.5" y="5.5" width="8" height="8" rx="1.5"/><path d="M10.5 3.5v-.5A1.5 1.5 0 0 0 9 1.5H4A1.5 1.5 0 0 0 2.5 3v5A1.5 1.5 0 0 0 4 9.5h.5"/></svg>',
+    expand: '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M9.5 2.5h4v4M6.5 13.5h-4v-4M13.5 2.5 9 7M2.5 13.5 7 9" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    cal: '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="2.5" y="3.5" width="11" height="10" rx="1.5"/><path d="M2.5 6.5h11M5.5 2v3M10.5 2v3" stroke-linecap="round"/></svg>',
     out: '<svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M5 11 11 5M6 4.5h5.5V10" stroke-linecap="round" stroke-linejoin="round"/></svg>'
   }
 
@@ -103,6 +105,7 @@
     var n = hit ? hit.pass.n : (/^p(\d+)-/.exec(id) || [])[1]
     return n ? hP(b.slug, n) + '/' + encodeURIComponent(id) : ''
   }
+  function hV(b, id) { var h = hI(b, id); return h ? h + '/view' : '' }
   function ideaLinks(b, ids) {
     return arr(ids).map(function (id) {
       var h = hI(b, id)
@@ -217,8 +220,7 @@
     return top([{ label: 'Playground' }]) +
       '<div class="head"><h1>Brainstorms</h1><p class="head__meta">' + plural(BRAINSTORMS.length, 'brainstorm', 'brainstorms') + '</p></div>' +
       '<div class="controls">' + searchField('Search brainstorms', f.q) +
-      '<label class="field field--date"><span>From</span><input type="date" data-filter="from" value="' + esc(f.from) + '" aria-label="Modified from"></label>' +
-      '<label class="field field--date"><span>To</span><input type="date" data-filter="to" value="' + esc(f.to) + '" aria-label="Modified to"></label>' +
+      rangePill() +
       '<span class="controls__end">' + viewToggle() + '</span></div>' +
       '<div class="collection" id="collection"></div>'
   }
@@ -239,7 +241,7 @@
     if (state.view === 'grid') {
       return '<ul class="grid" role="list">' + list.map(function (b, k) {
         var fi = firstIdea(info(b).passes[0])
-        return '<li class="card' + cls(b.slug, b.status === 'archived') + '" data-key="' + esc(b.slug) + '" style="--i:' + k + '">' +
+        return '<li class="card' + cls(b.slug) + '" data-key="' + esc(b.slug) + '" style="--i:' + k + '">' +
           '<a class="card__link" href="' + esc(hB(b.slug)) + '">' + tile(b.slug, fi) +
           '<span class="card__text"><span class="card__title">' + esc(b.title || b.slug) + '</span>' +
           (b.description ? '<span class="card__desc">' + esc(b.description) + '</span>' : '') +
@@ -249,7 +251,7 @@
     }
     return '<div class="tablewrap"><table class="table"><thead><tr><th class="c-check"><span class="vh">Select</span></th><th>Title</th><th class="c-wide">Description</th><th class="c-date">Modified</th><th class="c-status">Status</th></tr></thead><tbody>' +
       list.map(function (b) {
-        return '<tr class="' + cls(b.slug, b.status === 'archived') + '" data-key="' + esc(b.slug) + '" data-href="' + esc(hB(b.slug)) + '">' +
+        return '<tr class="' + cls(b.slug) + '" data-key="' + esc(b.slug) + '" data-href="' + esc(hB(b.slug)) + '">' +
           '<td class="c-check">' + check(b.slug, 'Select ' + (b.title || b.slug)) + '</td>' +
           '<td><a class="rowlink" href="' + esc(hB(b.slug)) + '">' + esc(b.title || b.slug) + '</a>' + (b.description ? '<span class="sub">' + esc(b.description) + '</span>' : '') + '</td>' +
           '<td class="c-wide muted">' + esc(b.description || '') + '</td>' +
@@ -257,30 +259,19 @@
           '<td class="c-status">' + statusText(b.status) + '</td></tr>'
       }).join('') + '</tbody></table></div>'
   }
-  function cls(key, dim) { return (state.sel.has(key) ? ' is-selected' : '') + (dim ? ' is-dim' : '') }
+  function cls(key) { return state.sel.has(key) ? ' is-selected' : '' }
 
   function pageBrainstorm(b) {
     var I = info(b), title = b.title || b.slug
     document.title = title + ' / Playground'
-    var out = top([{ label: 'Home', href: '#/' }, { label: title }]) +
+    return top([{ label: 'Home', href: '#/' }, { label: title }]) +
       '<div class="head"><h1>' + esc(title) + '</h1>' +
-      '<p class="head__meta">' + [timeTag(b.modified) ? '<span>Modified ' + timeTag(b.modified) + '</span>' : '', '<span>' + plural(I.passes.length, 'pass', 'passes') + '</span>'].filter(Boolean).join('<span class="dot" aria-hidden="true"></span>') + mark(b.status) + '</p>' +
-      (b.description ? '<p class="head__desc">' + esc(b.description) + '</p>' : '') + '</div>'
-    var bq = b.brief && b.brief.quote
-    if (bq) out += '<section class="sec" aria-labelledby="h-brief"><h2 id="h-brief" class="label">Brief</h2>' + quote(bq, 'quote--brief', 'User' + (b.brief.date ? ', ' + timeTag(b.brief.date) : '')) + '</section>'
-    var oc = b.outcome
-    if (oc && oc.idea) {
-      var hit = I.ideas[oc.idea]
-      out += '<section class="sec outcome" aria-labelledby="h-outcome"><h2 id="h-outcome" class="label">Outcome</h2>' +
-        '<p class="outcome__pick"><span class="mark mark--final">Final</span> ' + ideaLinks(b, [oc.idea]) + (hit && hit.idea.name ? ' <span class="outcome__name">' + esc(hit.idea.name) + '</span>' : '') +
-        (oc.date ? '<span class="muted"> ' + timeTag(oc.date) + '</span>' : '') + '</p>' +
-        (oc.summary ? '<p class="outcome__summary">' + esc(oc.summary) + '</p>' : '') + '</section>'
-    }
-    out += '<section class="sec" aria-labelledby="h-passes"><div class="sec__head"><h2 id="h-passes" class="label">Passes</h2>' + viewToggle() + '</div>' +
-      '<div class="collection" id="collection"></div></section>'
-    out += '<section class="sec" aria-labelledby="h-history"><h2 id="h-history" class="label">History</h2>' +
-      (I.log.length ? entries(b, I.log) : empty('No history yet.')) + '</section>'
-    return out
+      '<p class="head__meta"><span>' + plural(I.passes.length, 'pass', 'passes') + '</span>' + mark(b.status) + '</p></div>' +
+      '<div class="controls">' +
+      (I.log.length ? '<button type="button" class="pill" data-act="history" aria-expanded="false" aria-controls="history">History</button>' : '') +
+      '<span class="controls__end">' + viewToggle() + '</span></div>' +
+      '<div class="collection" id="collection"></div>' +
+      (I.log.length ? '<section class="history" id="history" aria-labelledby="h-history" hidden><h2 id="h-history" class="vh">History</h2>' + entries(b, I.log) + '</section>' : '')
   }
   function passesCollection(b) {
     var ps = info(b).passes
@@ -288,20 +279,18 @@
     if (!ps.length) return empty('No passes yet.')
     if (state.view === 'grid') {
       return '<ul class="grid" role="list">' + ps.map(function (p, k) {
-        var n = arr(p.ideas).length, c = chosenCount(p), fq = p.brief && p.brief.quote
+        var n = arr(p.ideas).length, c = chosenCount(p)
         return '<li class="card" style="--i:' + k + '"><a class="card__link" href="' + esc(hP(b.slug, p.n)) + '">' + tile(b.slug, firstIdea(p)) +
           '<span class="card__text"><span class="card__title"><span>Pass ' + esc(p.n) + '</span><span class="card__date">' + timeTag(p.date) + '</span></span>' +
-          '<span class="card__meta"><span>' + plural(n, 'idea', 'ideas') + ', ' + c + ' chosen</span></span>' +
-          (fq ? '<span class="card__quote">“' + esc(fq) + '”</span>' : '') + '</span></a></li>'
+          '<span class="card__meta"><span>' + plural(n, 'idea', 'ideas') + ', ' + c + ' chosen</span></span></span></a></li>'
       }).join('') + '</ul>'
     }
     return '<div class="tablewrap"><table class="table"><thead><tr><th class="c-num">Pass</th><th class="c-date">Date</th><th class="c-wide">Started from</th><th class="c-num">Ideas</th><th class="c-num">Chosen</th></tr></thead><tbody>' +
       ps.map(function (p) {
         var fq = p.brief && p.brief.quote
-        return '<tr data-href="' + esc(hP(b.slug, p.n)) + '"><td class="c-num"><a class="rowlink" href="' + esc(hP(b.slug, p.n)) + '">Pass ' + esc(p.n) + '</a>' +
-          (fq ? '<span class="sub">“' + esc(fq) + '”</span>' : '') + '</td>' +
+        return '<tr data-href="' + esc(hP(b.slug, p.n)) + '"><td class="c-num"><a class="rowlink" href="' + esc(hP(b.slug, p.n)) + '">Pass ' + esc(p.n) + '</a></td>' +
           '<td class="c-date num">' + timeTag(p.date) + '</td>' +
-          '<td class="c-wide">' + (fq ? '<span class="qtext">“' + esc(fq) + '”</span>' : '<span class="muted">No feedback recorded</span>') + '</td>' +
+          '<td class="c-wide c-clip">' + (fq ? '<span class="clip" title="' + esc(fq) + '">“' + esc(fq) + '”</span>' : '<span class="muted">No feedback recorded</span>') + '</td>' +
           '<td class="c-num num">' + arr(p.ideas).length + '</td><td class="c-num num">' + chosenCount(p) + '</td></tr>'
       }).join('') + '</tbody></table></div>'
   }
@@ -309,17 +298,10 @@
   function pagePass(b, p) {
     var title = b.title || b.slug, n = arr(p.ideas).length, f = filt()
     document.title = 'Pass ' + p.n + ' / ' + title + ' / Playground'
-    var by = p.brief && p.brief.by === 'agent' ? 'Agent' : 'User'
-    var fq = p.brief && p.brief.quote
     var out = top([{ label: 'Home', href: '#/' }, { label: title, href: hB(b.slug) }, { label: 'Pass ' + p.n }]) +
       '<div class="head"><h1>Pass ' + esc(p.n) + '</h1><p class="head__meta">' +
-      [timeTag(p.date), '<span>' + plural(n, 'idea', 'ideas') + '</span>', '<span>' + chosenCount(p) + ' chosen</span>'].filter(Boolean).join('<span class="dot" aria-hidden="true"></span>') + '</p></div>'
-    if (fq || arr(p.from).length || p.summary) {
-      out += '<section class="sec sec--tight" aria-label="Where this pass came from">' +
-        (fq ? (by === 'User' ? quote(fq, '', 'User') : agentNote(fq, 'Agent’s brief')) : '') +
-        (arr(p.from).length ? '<p class="from"><span class="label">Grew from</span> ' + ideaLinks(b, p.from) + '</p>' : '') +
-        agentNote(p.summary, 'Agent’s summary') + '</section>'
-    }
+      ['<span>' + plural(n, 'idea', 'ideas') + '</span>', '<span>' + chosenCount(p) + ' chosen</span>',
+        arr(p.from).length ? '<span class="from">Grew from ' + ideaLinks(b, p.from) + '</span>' : ''].filter(Boolean).join('<span class="dot" aria-hidden="true"></span>') + '</p></div>'
     out += '<div class="controls">' + searchField('Search ideas', f.q) +
       '<button type="button" class="pill" data-act="chosen" aria-pressed="' + !!f.chosen + '">Chosen only</button>' +
       '<span class="controls__end">' + viewToggle() + '</span></div>' +
@@ -339,24 +321,27 @@
     state.selKeys = arr(p.ideas).map(function (i) { return i.id })
     state.visibleIds = list.map(function (i) { return i.id })
     if (!list.length) return empty(filt().chosen ? 'No chosen ideas match.' : 'No ideas match.')
+    var hasEval = arr(p.ideas).some(function (i) { return i.eval && i.eval.score != null })
     if (state.view === 'grid') {
       return '<ul class="grid grid--ideas" role="list">' + list.map(function (i, k) {
-        return '<li class="cell' + cls(i.id, i.status === 'dropped') + act(i.id) + '" data-key="' + esc(i.id) + '" data-id="' + esc(i.id) + '" style="--i:' + k + '">' +
+        return '<li class="cell' + cls(i.id) + act(i.id) + '" data-key="' + esc(i.id) + '" data-id="' + esc(i.id) + '" style="--i:' + k + '">' +
           '<a class="card__link" href="' + esc(hI(b, i.id)) + '"' + cur(i.id) + '>' + tile(b.slug, i) +
           '<span class="cell__text"><span class="cell__num">' + esc(ideaNum(i.id)) + '</span><span class="cell__name">' + esc(i.name || '') + '</span>' + mark(i.status) + '</span></a>' +
-          check(i.id, 'Select ' + i.id) + '</li>'
+          check(i.id, 'Select ' + i.id) +
+          (safeUrl(i.url) ? '<a class="cell__view" href="' + esc(hV(b, i.id)) + '" aria-label="View ' + esc(i.id) + ' full screen">' + ICON.expand + '</a>' : '') + '</li>'
       }).join('') + '</ul>'
     }
-    return '<div class="tablewrap"><table class="table"><thead><tr><th class="c-check"><span class="vh">Select</span></th><th class="c-id">ID</th><th>Name</th><th class="c-wide">Bet</th><th class="c-status">Status</th><th class="c-num c-eval">Eval</th></tr></thead><tbody>' +
+    return '<div class="tablewrap"><table class="table"><thead><tr><th class="c-check"><span class="vh">Select</span></th><th class="c-id">ID</th><th>Name</th><th class="c-wide">Bet</th><th class="c-status">Status</th>' + (hasEval ? '<th class="c-num c-eval">Eval</th>' : '') + '<th class="c-view"><span class="vh">View</span></th></tr></thead><tbody>' +
       list.map(function (i) {
         var score = i.eval && i.eval.score != null ? esc(i.eval.score) : '<span class="muted">·</span>'
-        return '<tr class="' + cls(i.id, i.status === 'dropped') + act(i.id) + '" data-key="' + esc(i.id) + '" data-id="' + esc(i.id) + '" data-href="' + esc(hI(b, i.id)) + '">' +
+        return '<tr class="' + cls(i.id) + act(i.id) + '" data-key="' + esc(i.id) + '" data-id="' + esc(i.id) + '" data-href="' + esc(hI(b, i.id)) + '">' +
           '<td class="c-check">' + check(i.id, 'Select ' + i.id) + '</td>' +
           '<td class="c-id num"><a class="rowlink" href="' + esc(hI(b, i.id)) + '"' + cur(i.id) + '>' + esc(i.id) + '</a></td>' +
-          '<td>' + esc(i.name || '') + (i.bet ? '<span class="sub">' + esc(i.bet) + '</span>' : '') + '</td>' +
-          '<td class="c-wide muted">' + esc(i.bet || '') + '</td>' +
+          '<td class="c-name">' + esc(i.name || '') + '</td>' +
+          '<td class="c-wide c-clip muted">' + (i.bet ? '<span class="clip" title="' + esc(i.bet) + '">' + esc(i.bet) + '</span>' : '') + '</td>' +
           '<td class="c-status">' + statusText(i.status) + '</td>' +
-          '<td class="c-num c-eval num">' + score + '</td></tr>'
+          (hasEval ? '<td class="c-num c-eval num">' + score + '</td>' : '') +
+          '<td class="c-view">' + (safeUrl(i.url) ? '<a class="viewlink" href="' + esc(hV(b, i.id)) + '" aria-label="View ' + esc(i.id) + ' full screen">View</a>' : '') + '</td></tr>'
       }).join('') + '</tbody></table></div>'
   }
   function act(id) { return state.panelId === id ? ' is-active' : '' }
@@ -376,15 +361,14 @@
       : ph(ideaNum(idea.id), idea.name)) + '</div>'
     body += '<div class="panel__title"><h2>' + esc(idea.name || idea.id) + '</h2>' + mark(idea.status) + '</div>'
     if (idea.bet) body += '<p class="panel__bet">' + esc(idea.bet) + '</p>'
-    if (url) body += '<p class="panel__open"><a class="pill pill--solid" href="' + esc(url) + '" target="_blank" rel="noopener noreferrer">Open idea ' + ICON.out + '</a></p>'
-    body += '<dl class="facts">'
-    body += fact('Status', idea.status ? esc(cap(idea.status)) : 'Open')
-    body += fact('Grew from', arr(idea.parents).length ? ideaLinks(b, idea.parents) : '<span class="muted">Nothing, a first idea</span>')
-    body += fact('Led to', led.length ? ideaLinks(b, led) : '<span class="muted">Nothing yet</span>')
-    if (ev && (ev.score != null || ev.note)) body += fact('Eval', (ev.score != null ? '<span class="num">' + esc(ev.score) + '</span>' : '') + (ev.note ? '<span class="facts__note">' + esc(ev.note) + '</span>' : ''))
-    if (idea.source) body += fact('Source', '<span class="source"><code>' + esc(idea.source) + '</code><button type="button" class="iconbtn iconbtn--sm" data-act="copy" data-copy="' + esc(idea.source) + '" aria-label="Copy source path">' + ICON.copy + '</button></span>')
-    body += '</dl>'
-    if (logs.length) body += '<section class="panel__sec" aria-label="History of this idea"><h3 class="label">History</h3>' + entries(b, logs) + '</section>'
+    if (url) body += '<p class="panel__open"><a class="pill pill--solid" href="' + esc(hV(b, idea.id)) + '">Open idea ' + ICON.expand + '</a></p>'
+    var facts = ''
+    if (arr(idea.parents).length) facts += fact('Grew from', ideaLinks(b, idea.parents))
+    if (led.length) facts += fact('Led to', ideaLinks(b, led))
+    if (ev && (ev.score != null || ev.note)) facts += fact('Eval', (ev.score != null ? '<span class="num">' + esc(ev.score) + '</span>' : '') + (ev.note ? '<span class="facts__note">' + esc(ev.note) + '</span>' : ''))
+    if (facts) body += '<dl class="facts">' + facts + '</dl>'
+    if (idea.source) body += '<p class="source panel__source"><code>' + esc(idea.source) + '</code><button type="button" class="iconbtn iconbtn--sm" data-act="copy" data-copy="' + esc(idea.source) + '" aria-label="Copy source path">' + ICON.copy + '</button></p>'
+    if (logs.length) body += '<details class="panel__hist"><summary>History <span class="num muted">' + logs.length + '</span></summary>' + entries(b, logs) + '</details>'
     return '<div class="panel__head"><p class="panel__id"><span class="panel__num">' + esc(idea.id) + '</span><span class="vh"> of pass ' + esc(p.n) + '</span></p>' +
       '<div class="panel__nav">' +
       '<button type="button" class="iconbtn" data-act="step" data-to="' + esc(prev || '') + '" aria-label="Previous idea"' + (prev ? '' : ' disabled') + '>' + ICON.prev + '</button>' +
@@ -393,7 +377,6 @@
       '<div class="panel__body">' + body + '</div>'
   }
   function fact(k, v) { return '<div class="facts__row"><dt class="label">' + esc(k) + '</dt><dd>' + v + '</dd></div>' }
-  function cap(s) { s = String(s); return s.charAt(0).toUpperCase() + s.slice(1) }
   function stepList(p) {
     var all = arr(p.ideas).map(function (i) { return i.id })
     return state.panelId && state.visibleIds.indexOf(state.panelId) !== -1 ? state.visibleIds : all
@@ -452,6 +435,217 @@
     if (b) go(hI(b, id), true)
   }
 
+  /* ---------- date range picker (index toolbar) ----------
+     Dates are local-calendar 'YYYY-MM-DD' strings throughout; arithmetic goes through Date.UTC
+     so no timezone can shift a day. Filters on last modified, inclusive at both ends. */
+
+  var LOCALE = 'en-GB'   // the shell's own dates read '16 Nov 2026'
+  function pad(n) { return (n < 10 ? '0' : '') + n }
+  function ymd(y, m, d) { var t = new Date(Date.UTC(y, m - 1, d)); return t.getUTCFullYear() + '-' + pad(t.getUTCMonth() + 1) + '-' + pad(t.getUTCDate()) }
+  function dparts(s) { return s.split('-').map(Number) }
+  function addDays(s, n) { var p = dparts(s); return ymd(p[0], p[1], p[2] + n) }
+  function addMonths(s, n) {
+    var p = dparts(s), last = new Date(Date.UTC(p[0], p[1] - 1 + n + 1, 0)).getUTCDate()
+    return ymd(p[0], p[1] + n, Math.min(p[2], last))
+  }
+  function dow(s) { var p = dparts(s); return new Date(Date.UTC(p[0], p[1] - 1, p[2])).getUTCDay() }
+  function asUTC(s) { var p = dparts(s); return Date.UTC(p[0], p[1] - 1, p[2]) }
+  function todayStr() { var t = new Date(); return ymd(t.getFullYear(), t.getMonth() + 1, t.getDate()) }
+  var WEEK_START = (function () {   // 0 = Sunday, 1 = Monday; Monday unless the locale says otherwise
+    try {
+      var loc = new Intl.Locale(navigator.language || LOCALE)
+      var wi = typeof loc.getWeekInfo === 'function' ? loc.getWeekInfo() : loc.weekInfo
+      if (wi && wi.firstDay) return wi.firstDay % 7
+    } catch (e) {}
+    return 1
+  })()
+  var fmtMonth = new Intl.DateTimeFormat(LOCALE, { month: 'long', year: 'numeric', timeZone: 'UTC' })
+  var fmtWd = new Intl.DateTimeFormat(LOCALE, { weekday: 'short', timeZone: 'UTC' })
+  var fmtWdLong = new Intl.DateTimeFormat(LOCALE, { weekday: 'long', timeZone: 'UTC' })
+  var fmtFull = new Intl.DateTimeFormat(LOCALE, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })
+
+  var PRESETS = [
+    ['7d', 'Last 7 days', function (t) { return [addDays(t, -6), t] }],
+    ['30d', 'Last 30 days', function (t) { return [addDays(t, -29), t] }],
+    ['3m', 'Last 3 months', function (t) { return [addMonths(t, -3), t] }],
+    ['year', 'This year', function (t) { return [t.slice(0, 4) + '-01-01', t] }],
+    ['any', 'Any date', function () { return ['', ''] }]
+  ]
+
+  var dp = { open: false, month: '', focus: '', anchor: '', hover: '' }
+  var $dp = document.createElement('div')
+  $dp.className = 'dp'; $dp.id = 'dp'; $dp.tabIndex = -1
+  $dp.setAttribute('role', 'dialog'); $dp.setAttribute('aria-label', 'Filter by date modified'); $dp.setAttribute('inert', '')
+  var $dpScrim = document.createElement('div')
+  $dpScrim.className = 'dp-scrim'; $dpScrim.setAttribute('aria-hidden', 'true')
+  document.body.appendChild($dpScrim); document.body.appendChild($dp)
+
+  function rangeLabel(f) {
+    if (!f.from && !f.to) return 'Any date'
+    var a = f.from || f.to, b = f.to || f.from
+    if (a === b) return fmtDate(a)
+    var pa = dparts(a), pb = dparts(b)
+    return (pa[0] === pb[0] ? pa[2] + ' ' + MONTHS[pa[1] - 1] : fmtDate(a)) + ' – ' + fmtDate(b)
+  }
+  function rangePill() {
+    var f = filt(), set = !!(f.from || f.to)
+    return '<span class="range' + (set ? ' is-set' : '') + '" id="range">' +
+      '<button type="button" class="range__btn" data-act="range" aria-haspopup="dialog" aria-expanded="' + dp.open + '" aria-controls="dp">' +
+      ICON.cal + '<span class="vh">Date modified: </span><span>' + esc(rangeLabel(f)) + '</span></button>' +
+      (set ? '<button type="button" class="range__clear" data-act="range-clear" aria-label="Clear dates">' + ICON.close + '</button>' : '') + '</span>'
+  }
+  function refreshPill(focusIt) {
+    var el = document.getElementById('range')
+    if (!el) return
+    el.outerHTML = rangePill()
+    if (focusIt) { var b = document.querySelector('.range__btn'); if (b) b.focus() }
+  }
+  function setRange(a, b) { var f = filt(); f.from = a; f.to = b; fill() }
+
+  function dpDays() {
+    var y = +dp.month.slice(0, 4), m = +dp.month.slice(5, 7), n = new Date(Date.UTC(y, m, 0)).getUTCDate()
+    var out = []; for (var d = 1; d <= n; d++) out.push(ymd(y, m, d))
+    return out
+  }
+  function renderDp() {
+    var f = filt(), t = todayStr(), days = dpDays(), lead = (dow(days[0]) - WEEK_START + 7) % 7
+    var heads = '', cells = ''
+    for (var i = 0; i < 7; i++) {
+      var wd = addDays('2023-12-31', (WEEK_START + i) % 7)   // 31 Dec 2023 was a Sunday
+      heads += '<span class="dp__wd" aria-hidden="true" title="' + esc(fmtWdLong.format(asUTC(wd))) + '">' + esc(fmtWd.format(asUTC(wd)).slice(0, 2)) + '</span>'
+    }
+    for (var j = 0; j < lead; j++) cells += '<span class="dp__blank"></span>'
+    days.forEach(function (d) {
+      cells += '<button type="button" class="dp__day" data-day="' + d + '" tabindex="' + (d === dp.focus ? 0 : -1) + '" aria-label="' +
+        esc(fmtFull.format(asUTC(d)) + (d === t ? ', today' : '')) + '">' + +d.slice(8) + '</button>'
+    })
+    var presets = PRESETS.map(function (p) {
+      var r = p[2](t), on = r[0] === (f.from || '') && r[1] === (f.to || '')
+      return '<button type="button" class="dp__preset" data-preset="' + p[0] + '" aria-pressed="' + on + '">' + esc(p[1]) + '</button>'
+    }).join('')
+    $dp.innerHTML = '<div class="dp__presets" role="group" aria-label="Presets">' + presets + '</div>' +
+      '<div class="dp__cal"><div class="dp__head">' +
+      '<button type="button" class="iconbtn iconbtn--sm" data-month="-1" aria-label="Previous month">' + ICON.prev + '</button>' +
+      '<span class="dp__title" aria-live="polite">' + esc(fmtMonth.format(asUTC(dp.month))) + '</span>' +
+      '<button type="button" class="iconbtn iconbtn--sm" data-month="1" aria-label="Next month">' + ICON.next + '</button></div>' +
+      '<div class="dp__grid">' + heads + cells + '</div>' +
+      '<p class="dp__hint" aria-live="polite">' + (dp.anchor ? 'Pick the end date' : 'Pick a start date') + '</p></div>'
+    paintRange()
+  }
+  function paintRange() {
+    var f = filt(), a, b, t = todayStr()
+    if (dp.anchor) { a = dp.anchor; b = dp.hover || dp.anchor } else { a = f.from || f.to; b = f.to || f.from }
+    if (a && b && a > b) { var x = a; a = b; b = x }
+    var els = $dp.querySelectorAll('.dp__day')
+    for (var i = 0; i < els.length; i++) {
+      var d = els[i].getAttribute('data-day'), inR = !!a && d >= a && d <= b, end = !!a && (d === a || d === b)
+      els[i].classList.toggle('is-end', end)
+      els[i].classList.toggle('is-in', inR && !end)
+      els[i].classList.toggle('is-today', d === t)
+      els[i].setAttribute('aria-pressed', String(inR))
+    }
+    var hint = $dp.querySelector('.dp__hint')
+    if (hint) hint.textContent = dp.anchor ? 'Pick the end date' : 'Pick a start date'
+  }
+  function focusDay(d) {
+    if (d) {
+      if (d.slice(0, 7) !== dp.month.slice(0, 7)) { dp.focus = d; dp.month = d.slice(0, 8) + '01'; renderDp() }
+      dp.focus = d
+    }
+    var els = $dp.querySelectorAll('.dp__day'), target = null
+    for (var i = 0; i < els.length; i++) {
+      var on = els[i].getAttribute('data-day') === dp.focus
+      els[i].tabIndex = on ? 0 : -1
+      if (on) target = els[i]
+    }
+    if (dp.anchor) { dp.hover = dp.focus; paintRange() }
+    if (target) target.focus()
+  }
+  function openDp() {
+    var f = filt()
+    dp.open = true; dp.anchor = ''; dp.hover = ''
+    dp.focus = f.to || f.from || todayStr()
+    dp.month = dp.focus.slice(0, 8) + '01'
+    renderDp()
+    $dp.removeAttribute('inert')
+    placeDp()
+    $dp.classList.add('is-on'); $dpScrim.classList.add('is-on')
+    var b = document.querySelector('.range__btn'); if (b) b.setAttribute('aria-expanded', 'true')
+    focusDay()
+  }
+  function closeDp(returnFocus) {
+    if (!dp.open) return
+    dp.open = false; dp.anchor = ''; dp.hover = ''
+    $dp.classList.remove('is-on'); $dpScrim.classList.remove('is-on'); $dp.setAttribute('inert', '')
+    var b = document.querySelector('.range__btn')
+    if (b) { b.setAttribute('aria-expanded', 'false'); if (returnFocus) b.focus() }
+  }
+  function placeDp() {
+    if (!dp.open) return
+    if (window.matchMedia && matchMedia('(max-width: 640px)').matches) { $dp.style.top = ''; $dp.style.left = ''; return }
+    var host = document.getElementById('range'); if (!host) return
+    var r = host.getBoundingClientRect(), w = $dp.offsetWidth, vw = document.documentElement.clientWidth
+    $dp.style.top = (r.bottom + window.scrollY + 8) + 'px'
+    $dp.style.left = (Math.max(16, Math.min(r.left, vw - w - 16)) + window.scrollX) + 'px'
+  }
+  function pick(a, b) { setRange(a, b); closeDp(false); refreshPill(true) }
+
+  $dp.addEventListener('click', function (e) {
+    var pr = e.target.closest('[data-preset]')
+    if (pr) {
+      for (var i = 0; i < PRESETS.length; i++) if (PRESETS[i][0] === pr.getAttribute('data-preset')) { var r = PRESETS[i][2](todayStr()); pick(r[0], r[1]) }
+      return
+    }
+    var mb = e.target.closest('[data-month]')
+    if (mb) { dp.month = addMonths(dp.month, +mb.getAttribute('data-month')); dp.focus = dp.month; renderDp(); mb = $dp.querySelector('[data-month="' + mb.getAttribute('data-month') + '"]'); if (mb) mb.focus(); return }
+    var day = e.target.closest('[data-day]')
+    if (!day) return
+    var d = day.getAttribute('data-day')
+    if (!dp.anchor) { dp.anchor = d; dp.hover = d; dp.focus = d; paintRange(); focusDay() }
+    else { var a = dp.anchor < d ? dp.anchor : d, b = dp.anchor < d ? d : dp.anchor; pick(a, b) }
+  })
+  $dp.addEventListener('mouseover', function (e) {
+    var day = e.target.closest('[data-day]')
+    if (day && dp.anchor) { dp.hover = day.getAttribute('data-day'); paintRange() }
+  })
+  $dp.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); closeDp(true); return }
+    if (e.key === 'Tab') {   // Tab cycles inside the dialog: presets, month buttons, the current day
+      var f = [].slice.call($dp.querySelectorAll('button')).filter(function (el) { return el.tabIndex >= 0 && !el.disabled })
+      var i = f.indexOf(document.activeElement)
+      if (e.shiftKey && i <= 0) { e.preventDefault(); f[f.length - 1].focus() }
+      else if (!e.shiftKey && i === f.length - 1) { e.preventDefault(); f[0].focus() }
+      return
+    }
+    var day = e.target.closest && e.target.closest('[data-day]')
+    if (!day) return
+    var d = day.getAttribute('data-day'), to = null, k = e.key
+    if (k === 'ArrowLeft') to = addDays(d, -1)
+    else if (k === 'ArrowRight') to = addDays(d, 1)
+    else if (k === 'ArrowUp') to = addDays(d, -7)
+    else if (k === 'ArrowDown') to = addDays(d, 7)
+    else if (k === 'Home') to = addDays(d, -((dow(d) - WEEK_START + 7) % 7))
+    else if (k === 'End') to = addDays(d, 6 - ((dow(d) - WEEK_START + 7) % 7))
+    else if (k === 'PageUp') to = addMonths(d, e.shiftKey ? -12 : -1)
+    else if (k === 'PageDown') to = addMonths(d, e.shiftKey ? 12 : 1)
+    if (to) { e.preventDefault(); e.stopPropagation(); focusDay(to) }
+  })
+  $dp.addEventListener('focusout', function (e) {
+    var to = e.relatedTarget
+    if (dp.open && to && !$dp.contains(to) && !(document.getElementById('range') || $dp).contains(to)) closeDp(false)
+  })
+  document.addEventListener('focusin', function (e) {
+    var host = document.getElementById('range')
+    if (dp.open && !$dp.contains(e.target) && !(host && host.contains(e.target))) closeDp(false)
+  })
+  document.addEventListener('mousedown', function (e) {
+    if (!dp.open) return
+    var host = document.getElementById('range')
+    if ($dp.contains(e.target) || (host && host.contains(e.target))) return
+    closeDp(false)
+  })
+  window.addEventListener('resize', placeDp)
+
   /* ---------- routing ---------- */
 
   function parse() {
@@ -462,6 +656,7 @@
     if (parts.length === 1) return { page: 'brainstorm', slug: slug, key: 'b:' + slug }
     var m = /^pass-(\d+)$/.exec(parts[1])
     if (!m) return { page: 'brainstorm', slug: slug, key: 'b:' + slug }
+    if (parts[2] && parts[3] === 'view') return { page: 'view', slug: slug, n: +m[1], id: parts[2], key: 'v:' + slug + '/' + m[1] }
     return { page: 'pass', slug: slug, n: +m[1], id: parts[2] || null, key: 'p:' + slug + '/' + m[1] }
   }
   function go(hash, replace) {
@@ -470,6 +665,7 @@
   }
 
   function route() {
+    closeDp(false)
     var prev = state.route, r = parse()
     var samePage = r.key === state.pageKey
     // a pushed open: the pass page without a panel, then the same page with one
@@ -477,6 +673,16 @@
     else if (prev && !prev.id && !state.panelId) state.panelPushed = true
     state.route = r
 
+    if (r.page === 'view') {
+      state.pageKey = r.key
+      state.sel.clear(); updateBar()
+      state.panelId = null
+      $app.classList.remove('is-open')
+      $panel.setAttribute('inert', '')
+      renderViewer(r, samePage)
+      return
+    }
+    $app.classList.remove('is-viewer')
     if (!samePage) {
       state.pageKey = r.key
       state.sel.clear()
@@ -492,6 +698,55 @@
       if (hit && hit.pass === p) openPanel(b, p, hit.idea, !samePage)
       else closePanelUI()
     } else closePanelUI()
+  }
+
+  /* ---------- viewer: the idea itself, full screen, with the pass around it ---------- */
+
+  function renderViewer(r, samePage) {
+    var b = findB(r.slug), p = b && findPass(b, r.n), hit = b && info(b).ideas[r.id]
+    $app.classList.remove('is-viewer')
+    if (!b || !p || !hit || hit.pass !== p) {
+      $main.innerHTML = pageMissing(b ? 'The idea “' + r.id + '”' : 'The brainstorm “' + r.slug + '”')
+      return
+    }
+    var idea = hit.idea, title = b.title || b.slug, url = safeUrl(idea.url)
+    var ids = arr(p.ideas).map(function (i) { return i.id }), k = ids.indexOf(idea.id)
+    var prev = k > 0 ? ids[k - 1] : null, next = k < ids.length - 1 ? ids[k + 1] : null
+    var refocus = document.activeElement && document.activeElement.getAttribute && document.activeElement.getAttribute('data-dir')
+    document.title = idea.id + ' ' + (idea.name || '') + ' / Pass ' + p.n + ' / ' + title
+    var crumbs = '<nav class="crumbs vbar__crumbs" aria-label="Breadcrumb"><ol>' +
+      '<li class="crumb--far"><a href="#/">Home</a></li>' +
+      '<li class="crumb--far"><a href="' + esc(hB(b.slug)) + '">' + esc(title) + '</a></li>' +
+      '<li><a href="' + esc(hI(b, idea.id)) + '">Pass ' + esc(p.n) + '</a></li>' +
+      '<li class="crumb--idea"><span aria-current="page"><span class="num">' + esc(idea.id) + '</span>' +
+      (idea.name ? ' <span class="crumb__name">' + esc(idea.name) + '</span>' : '') + '</span></li></ol></nav>'
+    var stepper = '<div class="vbar__step" role="group" aria-label="Ideas in pass ' + esc(p.n) + '">' +
+      (prev ? '<a class="iconbtn" data-dir="prev" href="' + esc(hV(b, prev)) + '" aria-label="Previous idea, ' + esc(prev) + '">' + ICON.prev + '</a>'
+            : '<span class="iconbtn is-off" aria-hidden="true">' + ICON.prev + '</span>') +
+      '<span class="vbar__pos num" aria-live="polite">' + (k + 1) + ' of ' + ids.length + '</span>' +
+      (next ? '<a class="iconbtn" data-dir="next" href="' + esc(hV(b, next)) + '" aria-label="Next idea, ' + esc(next) + '">' + ICON.next + '</a>'
+            : '<span class="iconbtn is-off" aria-hidden="true">' + ICON.next + '</span>') + '</div>'
+    var tools = '<div class="vbar__tools">' + (mark(idea.status) || '') + stepper +
+      (url ? '<a class="iconbtn" href="' + esc(url) + '" target="_blank" rel="noopener noreferrer" aria-label="Open in new tab">' + ICON.out + '</a>' : '') +
+      themeBtn() + '</div>'
+    var frame = url
+      ? '<iframe title="' + esc(idea.id + (idea.name ? ', ' + idea.name : '')) + '" src="' + esc(url) + '"></iframe>'
+      : '<div class="vempty"><p class="vempty__title">No live view for this idea</p>' +
+        (idea.source ? '<p class="vempty__src"><span class="label">Source</span><span class="source"><code>' + esc(idea.source) + '</code><button type="button" class="iconbtn iconbtn--sm" data-act="copy" data-copy="' + esc(idea.source) + '" aria-label="Copy source path">' + ICON.copy + '</button></span></p>' : '') +
+        '<p><a class="idlink" href="' + esc(hI(b, idea.id)) + '">Back to pass ' + esc(p.n) + '</a></p></div>'
+    $main.innerHTML = '<div class="viewer"><header class="vbar">' + crumbs + tools + '</header><div class="vframe">' + frame + '</div></div>'
+    $app.classList.add('is-viewer')
+    var ifr = $main.querySelector('iframe')
+    if (ifr) ifr.addEventListener('load', function () { ifr.classList.add('is-loaded') })
+    // keep the keyboard where it was, so stepping can carry on
+    var again = refocus && $main.querySelector('[data-dir="' + refocus + '"]')
+    if (again) again.focus()
+    else if (!samePage) $main.focus({ preventScroll: true })
+  }
+  function leaveViewer() {
+    var r = state.route, b = r && findB(r.slug)
+    if (b && info(b).ideas[r.id]) go(hI(b, r.id), true)
+    else go('#/', true)
   }
 
   function render(r) {
@@ -580,10 +835,22 @@
         var f = filt(); f.chosen = !f.chosen
         t.setAttribute('aria-pressed', String(f.chosen))
         fill(); markActive()
+      } else if (a === 'range') {
+        if (dp.open) closeDp(true); else openDp()
+      } else if (a === 'range-clear') {
+        setRange('', ''); refreshPill(true)
+      } else if (a === 'history') {
+        var hs = document.getElementById('history'), open = t.getAttribute('aria-expanded') !== 'true'
+        t.setAttribute('aria-expanded', String(open))
+        if (hs) hs.hidden = !open
       } else if (a === 'step') step(t.getAttribute('data-to'))
       else if (a === 'close') closePanel()
       else if (a === 'copy') copyText(t.getAttribute('data-copy') || '', t)
       return
+    }
+    var dir = e.target.closest('a[data-dir]')
+    if (dir && !e.metaKey && !e.ctrlKey && !e.shiftKey && e.button === 0) {
+      e.preventDefault(); go(dir.getAttribute('href'), true); return
     }
     // whole table row opens, except its own controls
     var tr = e.target.closest('tr[data-href]')
@@ -616,6 +883,19 @@
   })
 
   document.addEventListener('keydown', function (e) {
+    if (state.route && state.route.page === 'view') {
+      var vt = (e.target.tagName || '').toLowerCase()
+      if (vt === 'input' || vt === 'textarea' || vt === 'select' || e.target.isContentEditable || e.metaKey || e.ctrlKey || e.altKey) return
+      if (e.key === 'Escape') { e.preventDefault(); leaveViewer() }
+      else if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+        var vb = findB(state.route.slug), vp = vb && findPass(vb, state.route.n)
+        if (!vp) return
+        var vids = arr(vp.ideas).map(function (i) { return i.id }), vk = vids.indexOf(state.route.id)
+        var vto = vids[vk + (e.key === 'ArrowLeft' ? -1 : 1)]
+        if (vto) { e.preventDefault(); go(hV(vb, vto), true) }
+      }
+      return
+    }
     if (!state.panelId) return
     var tag = (e.target.tagName || '').toLowerCase()
     var typing = tag === 'input' || tag === 'textarea' || tag === 'select' || e.target.isContentEditable
