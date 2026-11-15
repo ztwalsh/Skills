@@ -1,0 +1,79 @@
+/* Logo viewer tokens.
+   The one file to edit to restyle the viewer's chrome. logo.css reads only these.
+   The chrome uses two colours and mixes everything else from them. Dark is the default theme.
+   The logo's own colours (ink and paper in logo.json) are used only for artwork tiles and exports. */
+
+:root {
+  /* the two colours of the chrome */
+  --black: #131312;
+  --cream: #FAF8F5;
+
+  /* dark theme (default) */
+  --ink: var(--cream);
+  --paper: var(--black);
+  color-scheme: dark;
+
+  /* derived from ink and paper; recomputed per theme */
+  --ink-2: color-mix(in srgb, var(--ink) 64%, var(--paper));   /* secondary text */
+  --ink-3: color-mix(in srgb, var(--ink) 46%, var(--paper));   /* quiet labels */
+  --rule: color-mix(in srgb, var(--ink) 16%, transparent);     /* hairlines */
+  --rule-strong: color-mix(in srgb, var(--ink) 34%, transparent);
+  --tint: color-mix(in srgb, var(--ink) 4%, transparent);      /* hover ground */
+  --tint-2: color-mix(in srgb, var(--ink) 8%, transparent);    /* selected ground */
+  --scrim: color-mix(in srgb, var(--black) 48%, transparent);  /* behind the bottom sheet */
+
+  /* type */
+  --font: 'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif;
+  --font-mono: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  --w-regular: 400;
+  --w-medium: 500;
+  --fs-label: 12px;   /* quiet labels, section heads */
+  --fs-small: 13px;   /* controls, secondary lines */
+  --fs-body: 15px;    /* body, names */
+  --fs-lead: 17px;    /* the summary's idea */
+  --fs-num: 28px;     /* mark number in the panel */
+  --fs-title: clamp(28px, 4vw, 40px);       /* page titles */
+  --fs-hero: clamp(32px, 4.6vw, 52px);      /* the summary headline */
+  --lh-tight: 1.1;
+  --lh-body: 1.5;
+  --tracking-title: -0.02em;
+  --tracking-label: 0.01em;
+
+  /* radii */
+  --r-chip: 4px;
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-sheet: 16px;
+  --r-pill: 999px;
+  --r-icon: 0.225;    /* app icon corner, as a fraction of its side */
+
+  /* spacing */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 24px;
+  --s-6: 32px;
+  --s-7: 48px;
+  --s-8: 72px;
+  --gutter: 48px;     /* page side padding; drops to 24px, then 16px */
+  --max: 1440px;      /* widest the content gets */
+  --max-text: 1040px; /* the summary page's column */
+  --control-h: 34px;  /* pills, selects, icon buttons */
+  --cell-min: 160px;  /* a grid column is at least this wide (2 to 8 columns) */
+  --head-lockup: 220px;   /* the lockup in the top bar */
+
+  /* motion: position and opacity only */
+  --t-fast: 160ms;
+  --t-base: 220ms;
+  --t-in: 280ms;
+  --t-out: 200ms;
+  --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --ease-in: cubic-bezier(0.4, 0, 0.9, 0.4);
+}
+
+:root[data-theme='light'] {
+  --ink: var(--black);
+  --paper: var(--cream);
+  color-scheme: light;
+}

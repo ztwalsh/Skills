@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Logo</title>
+  <script>
+    /* theme before first paint: dark unless the viewer picked light */
+    try { if (localStorage.getItem('logo-viewer.theme') === 'light') document.documentElement.setAttribute('data-theme', 'light') } catch (e) {}
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500&family=Geist+Mono:wght@400&display=swap">
+  <link rel="stylesheet" href="./viewer-tokens.css">
+  <link rel="stylesheet" href="./viewer/logo.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <div class="app" id="app">
+    <main class="page" id="main" tabindex="-1"></main>
+    <div class="scrim" id="scrim" aria-hidden="true"></div>
+    <aside class="panel" id="panel" tabindex="-1" aria-label="Mark preview" inert></aside>
+    <div class="selbar" id="selbar" inert>
+      <div class="selbar__inner">
+        <span class="selbar__count" id="selcount" role="status" aria-live="polite"></span>
+        <button type="button" class="pill pill--solid" id="selcopy">Copy</button>
+        <button type="button" class="pill" id="selclear">Clear</button>
+      </div>
+    </div>
+  </div>
+  <!-- off-screen surface for measuring marks and lockups -->
+  <svg id="measure" class="measure" aria-hidden="true" focusable="false"></svg>
+  <script src="./data.js"></script>
+  <script src="./viewer/logo.js"></script>
+</body>
+</html>
