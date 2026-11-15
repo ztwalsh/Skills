@@ -15,7 +15,7 @@ is to let someone tell this idea from the one beside it at a glance.
   tokens, type and components, mapped as Stageshow's `references/looks.md` describes. It does
   not use the playground shell's look.
 - **On the shell's ground.** The frame's background is the shell's dark ground (`--paper` in
-  `playground/tokens.css`), so thumbnails sit in the grid without a box around them. If the
+  `playground/shell-tokens.css`), so thumbnails sit in the grid without a box around them. If the
   project's UI is light, the light surface sits inside the frame as a window or panel.
 - **Consistent across a pass.** Same stage size, same ground, same crop logic, same fidelity for
   every idea in the pass, so the differences seen are differences between the ideas.

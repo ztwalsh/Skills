@@ -25,7 +25,7 @@ the conversation does not make the problem clear, ask what to brainstorm.
 ## Two design sources, never mixed
 
 - **The shell** (index, tables, grids, idea panel) follows `playground/DESIGN.md` and
-  `playground/tokens.css`. It comes from this skill and is the same everywhere.
+  `playground/shell-tokens.css`. It comes from this skill and is the same everywhere.
 - **The ideas** follow the host project: its `DESIGN.md`, its tokens, its components, its stack.
 
 An idea never uses the shell's tokens. The shell never borrows the project's look.
@@ -34,7 +34,7 @@ An idea never uses the shell's tokens. The shell never borrows the project's loo
 
 ```
 playground/
-  index.html, tokens.css, DESIGN.md, shell/, data.js      the shell
+  index.html, shell-tokens.css, DESIGN.md, shell/, data.js      the shell
   <brainstorm-slug>/
     brainstorm.json                                        the source of truth
     pass-1/
@@ -82,16 +82,23 @@ The shell template is in `shell/` beside this file, with `DESIGN.md`.
 
 - **No `playground/` yet:** create it and copy in
   `shell/index.html` → `playground/index.html`,
-  `shell/tokens.css` → `playground/tokens.css`,
+  `shell/shell-tokens.css` → `playground/shell-tokens.css`,
   `DESIGN.md` → `playground/DESIGN.md`,
   and `shell/shell.css`, `shell/shell.js`, `shell/sync.mjs`, `shell/VERSION` → `playground/shell/`.
 - **`playground/` exists with this shell:** compare `playground/shell/VERSION` with the skill's.
   If the skill's is newer, replace `index.html` and the files in `playground/shell/`.
-  **Never overwrite `playground/tokens.css` or `playground/DESIGN.md`:** they are the owner's to
+  **Never overwrite `playground/shell-tokens.css` or `playground/DESIGN.md`:** they are the owner's to
   customize. If the new shell needs a token the file lacks, add that token and say so.
 - **`playground/` exists with something else in it** (an older, hand-built playground): do not
   delete or restructure it. Tell the user what is there and ask whether to set the shell up
   beside it or migrate the old ideas in.
+  To migrate without moving anything: keep the old files where they are, rename the old index
+  to `index-old.html`, and register each old set of prototypes as a brainstorm whose ideas point
+  at the existing files through `source` and `url`. Group them into passes only where the
+  history shows a real second round; otherwise one pass. Carry over titles, descriptions and
+  scores from any old manifest. Mark the `brief` and every reason as reconstructed unless the
+  user's own words are on record. Do not migrate while another session has uncommitted changes
+  in that playground.
 - **Keep it off the public site.** Check how the project builds and deploys. If `playground/`
   would be published, exclude it from the build or say plainly that it will be public.
   `index.html` already asks search engines not to index it.

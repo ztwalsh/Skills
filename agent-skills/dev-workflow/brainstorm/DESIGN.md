@@ -21,7 +21,7 @@ governs the ideas themselves. Each idea follows its own project's DESIGN.md.
 
 Dark is the default theme. The toggle swaps ink and paper.
 
-## Tokens (`tokens.css`)
+## Tokens (`shell-tokens.css`)
 
 | Token | Default | Used for |
 |---|---|---|
@@ -78,11 +78,11 @@ Dark is the default theme. The toggle swaps ink and paper.
 
 ## Customizing
 
-1. **Edit `tokens.css` first.** Change the two base colours, the font, radii, spacing or the
+1. **Edit `shell-tokens.css` first.** Change the two base colours, the font, radii, spacing or the
    panel width there, and the whole shell follows. Keep everything else derived from `--ink` and
    `--paper`, so both themes stay in step.
 2. If a component's shape has to change, edit `shell/shell.css`. Use tokens only, keep motion to
    position and opacity, and keep the reduced-motion block. A skill update replaces everything
    in `shell/` and `index.html`, so note the change here so it can be carried forward.
-3. `tokens.css` and this guide are yours. Updates leave them alone. Narrow screens override
+3. `shell-tokens.css` and this guide are yours. Updates leave them alone. Narrow screens override
    `--gutter` and `--tile-min` in `shell.css`, so change those breakpoint values there.
