@@ -77,6 +77,7 @@ process_repo() {
   sha=$(git -C "$toplevel" rev-parse --short HEAD 2>/dev/null) || return 0
   grep -q "· ${sha}\$" "$LOG" 2>/dev/null && return 0   # already logged (dedupe)
   grep -q "· ${sha} " "$LOG" 2>/dev/null && return 0
+  grep -qE "^## .*, ${sha}(,|\$)" "$LOG" 2>/dev/null && return 0   # later SHA in a merged entry
 
   subject=$(git -C "$toplevel" log -1 --format=%s)
   ts=$(git -C "$toplevel" log -1 --format=%cd --date=format:'%Y-%m-%d %H:%M')
