@@ -29,7 +29,7 @@ diagram still with the same frame rules, rather than forcing fake UI.
 Invoke the `stageshow` skill and follow its workflow for a still (medium and place, look, start
 from the closest gold example, frame, rehearse). Its skill folder holds the kit, the examples
 and the filming script. It is normally at
-`~/sites/personal-projects/Skills/agent-skills/ui/stageshow`; if it is not there, find it with
+`/path/to/skills-repo/skills/stageshow`; if it is not there, find it with
 the Skill tool's base directory for `stageshow`.
 
 Where to build the stage depends on the host project:

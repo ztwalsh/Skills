@@ -5,7 +5,7 @@ description: Scaffold a markdown ticket queue and unattended build-loop automati
 
 # ticket-queue-init: scaffold a per-repo unattended ticket queue
 
-This sets up the same pattern proven across `cardio-tracking`, `assistantOS`, `wallpaper`, and `ztwalsh.com`: drop a markdown ticket into `tickets/` (by hand, or via an app that writes there directly), and the queue reacts — auto-commits it, refines it into a well-scoped spec, implements it in an isolated worktree via headless Claude Code + the repo's `ship` skill, and lands a draft PR for review. The trigger is event-driven (launchd `WatchPaths` on the repo's `tickets/` directory), not a polling interval — a ticket gets picked up within moments of being created, not up to an hour later. This skill only scaffolds — it never loads the launchd job or runs a ticket itself. That's a separate, explicit step the user takes after a manual dry run.
+This sets up the same pattern proven across `movethink-app`, `assistantOS`, `wallpaper`, and `ztwalsh.com`: drop a markdown ticket into `tickets/` (by hand, or via an app that writes there directly), and the queue reacts — auto-commits it, refines it into a well-scoped spec, implements it in an isolated worktree via headless Claude Code + the repo's `ship` skill, and lands a draft PR for review. The trigger is event-driven (launchd `WatchPaths` on the repo's `tickets/` directory), not a polling interval — a ticket gets picked up within moments of being created, not up to an hour later. This skill only scaffolds — it never loads the launchd job or runs a ticket itself. That's a separate, explicit step the user takes after a manual dry run.
 
 ## The pipeline, end to end
 
