@@ -5,7 +5,7 @@
 Link the folder into Claude Code's skills directory:
 
 ```bash
-ln -s /path/to/skills-repo/skills/brain ~/.claude/skills/brain
+ln -s /path/to/skills-repo/brain ~/.claude/skills/brain
 ```
 
 ## The commit-time check (optional, recommended)
@@ -26,7 +26,7 @@ Add it to `~/.claude/settings.json` beside any existing `PostToolUse` hooks for 
         "hooks": [
           {
             "type": "command",
-            "command": "/path/to/skills-repo/skills/brain/hooks/post-commit-decisions.sh",
+            "command": "/path/to/skills-repo/brain/hooks/post-commit-decisions.sh",
             "timeout": 10,
             "statusMessage": "Checking for unlogged decisions"
           }

@@ -12,8 +12,8 @@ every personal project, no per-repo steps.
 ## 2. Symlink the skills so they're live in every project
 
 ```sh
-ln -s /path/to/skills-repo/skills/social-log   ~/.claude/skills/social-log
-ln -s /path/to/skills-repo/skills/social-draft ~/.claude/skills/social-draft
+ln -s /path/to/skills-repo/social-log   ~/.claude/skills/social-log
+ln -s /path/to/skills-repo/social-draft ~/.claude/skills/social-draft
 ```
 
 (Matches how `ship`, `brainstorm`, etc. are already linked.)
@@ -31,7 +31,7 @@ Add to `~/.claude/settings.json` (global, so it covers every project):
         "hooks": [
           {
             "type": "command",
-            "command": "/path/to/skills-repo/skills/social-log/hooks/post-commit-capture.sh"
+            "command": "/path/to/skills-repo/social-log/hooks/post-commit-capture.sh"
           }
         ]
       }
@@ -81,7 +81,7 @@ mkdir -p ~/.config/git/hooks
 cat > ~/.config/git/hooks/post-commit <<'EOF'
 #!/usr/bin/env bash
 printf '{"tool_input":{"command":"git commit"},"cwd":"%s"}' "$PWD" \
-  | /path/to/skills-repo/skills/social-log/hooks/post-commit-capture.sh >/dev/null 2>&1 || true
+  | /path/to/skills-repo/social-log/hooks/post-commit-capture.sh >/dev/null 2>&1 || true
 EOF
 chmod +x ~/.config/git/hooks/post-commit
 git config --global core.hooksPath ~/.config/git/hooks

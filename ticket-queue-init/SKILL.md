@@ -21,7 +21,7 @@ Read this whole file before doing anything; the setup has a specific order becau
 
 ## What this skill assumes
 
-- The target repo already has (or will get, separately) a `ship`-style skill — either the global `~/.claude/skills/ship` or a project-local `.claude/skills/<name>`. If neither exists yet, tell the user and offer to point them at the global `ship` skill (in this same `Skills` repo, `agent-skills/dev-workflow/ship`) instead of inventing build/review logic here.
+- The target repo already has (or will get, separately) a `ship`-style skill — either the global `~/.claude/skills/ship` or a project-local `.claude/skills/<name>`. If neither exists yet, tell the user and offer to point them at the global `ship` skill (in this same skills repo, `ship`) instead of inventing build/review logic here.
 - The target repo is a git repo with a `main` branch and a GitHub remote (`gh` CLI authenticated). If `gh auth status` fails, stop and tell the user — the queue can't land PRs without it.
 - macOS + launchd for scheduling (this skill's plist template is launchd-specific). If the target machine isn't macOS, still scaffold `tickets/`/`automation/` — they're portable bash/python — but skip the plist step and tell the user they'll need their own scheduler (cron, a CI cron job, etc.).
 
